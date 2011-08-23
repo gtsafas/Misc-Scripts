@@ -1,0 +1,2580 @@
+#!/bin/bash
+
+#------------------------------------------------
+#
+#	FIXed for linux, FIX 4.2
+#	Created on:   02/17/2010
+#	By	   George Tsafas
+#
+#------------------------------------------------
+
+
+if [ $1 -eq $1 2> /dev/null ]; then
+   
+   Translate="T$1"
+   
+else
+   
+   Translate="$1"
+   
+fi
+
+
+T1="Tag: [ 1 ]      Field : [ Account ]      DataType: [ String ] Definition: Account mnemonic as agreed between broker and institution."
+T2="Tag: [ 2 ]      Field :[ AdvId ]      DataType: [ String ] Definition: Unique identifier of advertisement message.
+(Prior to FIX 4.1 this field was of type int)"
+T3="Tag: [ 3 ]      Field :[ AdvRefID ]      DataType: [ String ] Definition: Reference identifier used with CANCEL and REPLACE transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+T4="Tag: [ 4 ]      Field :[ AdvSide ]      DataType: [ Char ] Definition: Broker's side of advertised trade
+Valid values: 
+B = Buy 
+S = Sell
+X = Cross
+T = Trade"
+T5="Tag: [ 5 ]      Field :[ AdvTransType ]      DataType: [ String ] Definition: Identifies advertisement message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+T6="Tag: [ 6 ]      Field :[ AvgPx ]      DataType: [ Price ] Definition: Calculated average price of all fills on this order."
+T7="Tag: [ 7 ]      Field :[ BeginSeqNo ]      DataType: [ int ] Definition: Message sequence number of first message in range to be resent"
+T8="Tag: [ 8 ]      Field :[ BeginString ]      DataType: [ String ] Definition: Identifies beginning of new message and protocol version.  ALWAYS FIRST FIELD IN MESSAGE. (Always unencrypted)
+Valid values:
+FIX.4.2"
+T9="Tag: [ 9 ]      Field :[ BodyLength ]      DataType: [ int ] Definition: Message length, in bytes, forward to the CheckSum field.  ALWAYS SECOND FIELD IN MESSAGE. (Always unencrypted)"
+T10="Tag: [ 10 ]      Field :[ CheckSum ]      DataType: [ String ] Definition: Three byte, simple checksum  (see Appendix B: CheckSum Calculation for description).  ALWAYS LAST FIELD IN MESSAGE; i.e. serves, with the trailing <SOH>, as the end-of-message delimiter.  Always defined as three characters. (Always unencrypted)"
+T11="Tag: [ 11 ]      Field :[ ClOrdID ]      DataType: [ String ] Definition: Unique identifier for Order as assigned by institution (identified by SenderCompID or OnBehalfOfCompID as appropriate).  Uniqueness must be guaranteed within a single trading day.  Firms, particularly those  which electronically submit multi-day orders, trade globally or throughout market close periods,should ensure  uniqueness across days, for example by embedding a date within the ClOrdID field."
+T12="Tag: [ 12 ]      Field :[ Commission ]      DataType: [ Amt ] Definition: Commission.  Note if CommType is percentage, Commission of 5% should be represented as .05."
+T13="Tag: [ 13 ]      Field :[ CommType ]      DataType: [ char ] Definition: Commission type
+Valid values:
+1 = per share
+2 = percentage
+3 = absolute"
+T14="Tag: [ 14 ]      Field :[ CumQty ]      DataType: [ Qty ] Definition: Total number of shares filled.
+(Prior to FIX 4.2 this field was of type int)"
+T15="Tag: [ 15 ]      Field :[ Currency ]      DataType: [ Currency ] Definition: Identifies currency used for price. Absence of this field is interpreted as the default for the security.  It is recommended that systems provide the currency value whenever possible.  See Appendix A: Valid Currency Codes for information on obtaining valid values."
+T16="Tag: [ 16 ]      Field :[ EndSeqNo ]      DataType: [ int ] Definition: Message sequence number of last message in range to be resent.  If request is for a single message BeginSeqNo = EndSeqNo.  If request is for all messages subsequent to a particular message, EndSeqNo = 0 (representing infinity)."
+T17="Tag: [ 17 ]      Field :[ ExecID ]      DataType: [ String ] Definition: Unique identifier of execution message as assigned by broker (will be 0 (zero) for ExecTransType=3 (Status)).
+Uniqueness must be guaranteed within a single trading day or the life of a multi-day order.  Firms which accept multi-day orders should consider embedding a date within the ExecID field to assure uniqueness across days.
+(Prior to FIX 4.1 this field was of type int)"
+T18="Tag: [ 18 ]      Field :[ ExecInst ]      DataType: [ MultipleValueString ] Definition: Instructions for order handling on exchange trading floor.  If more than one instruction is applicable to an order, this field can contain multiple instructions separated by space.
+Valid values:
+1 = Not held
+2 = Work
+3 = Go along
+4 = Over the day
+5 = Held
+6 = Participate don't initiate
+7 = Strict scale
+8 = Try to scale
+9 = Stay on bidside
+0 = Stay on offerside
+A = No cross (cross is forbidden)
+B = OK to cross
+C = Call first
+D = Percent of volume (indicates that the sender does not want to be all of the volume on the floor vs. a specific percentage)
+E = Do not increase - DNI
+F = Do not reduce - DNR
+G = All or none - AON
+I = Institutions only
+L = Last peg (last sale)
+M = Mid-price peg (midprice of inside quote)
+N = Non-negotiable
+O = Opening peg
+P = Market peg
+R = Primary peg (primary market - buy at bid/sell at offer)
+S = Suspend
+T = Fixed Peg to Local best bid or offer at time of order
+U = Customer Display Instruction (Rule11Ac1-1/4)
+V = Netting (for Forex)
+W = Peg to VWAP"
+T19="Tag: [ 19 ]      Field :[ ExecRefID ]      DataType: [ String ] Definition: Reference identifier used with Cancel and Correct transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+T20="Tag: [ 20 ]      Field :[ ExecTransType ]      DataType: [ char ] Definition: Identifies transaction type
+Valid values:  
+0 = New 
+1 = Cancel
+2 = Correct
+3 = Status"
+T21="Tag: [ 21 ]      Field :[ HandlInst ]      DataType: [ char ] Definition: Instructions for order handling on Broker trading floor
+Valid values:
+1 = Automated execution order, private, no Broker intervention
+2 = Automated execution order, public, Broker intervention OK
+3 = Manual order, best execution"
+T22="Tag: [ 22 ]      Field :[ IDSource ]      DataType: [ String ] Definition: Identifies class of alternative SecurityID
+Valid values:
+1 = CUSIP
+2 = SEDOL
+3 = QUIK
+4 = ISIN number
+5 = RIC code
+6 = ISO Currency Code
+7 = ISO Country Code
+8 = Exchange Symbol
+9 = Consolidated Tape Association (CTA) Symbol (SIAC CTS/CQS line format)
+
+100+ are reserved for private security identifications"
+T23="Tag: [ 23 ]      Field :[ IOIid ]      DataType: [ String ] Definition: Unique identifier of IOI message.
+(Prior to FIX 4.1 this field was of type int)"
+T24="Tag: [ 24 ]      Field :[ IOIOthSvc   (no longer used) ]      DataType: [ char ] Definition: No longer used as of FIX 4.2.  Included here for reference to prior versions."
+T25="Tag: [ 25 ]      Field :[ IOIQltyInd ]      DataType: [ char ] Definition: Relative quality of indication
+Valid values:
+L = Low
+M = Medium
+H = High"
+T26="Tag: [ 26 ]      Field :[ IOIRefID ]      DataType: [ String ] Definition: Reference identifier used with CANCEL and REPLACE, transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+T27="Tag: [ 27 ]      Field :[ IOIShares ]      DataType: [ String ] Definition: Number of shares in numeric or relative size.
+Valid values:
+0 - 1000000000
+S = Small
+M = Medium
+L = Large"
+T28="Tag: [ 28 ]      Field :[ IOITransType ]      DataType: [ char ] Definition: Identifies IOI message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+T29="Tag: [ 29 ]      Field :[ LastCapacity ]      DataType: [ char ] Definition: Broker capacity in order execution
+Valid values:  
+1 = Agent
+2 = Cross as agent
+3 = Cross as principal
+4 = Principal"
+T30="Tag: [ 30 ]      Field :[ LastMkt ]      DataType: [ Exchange ] Definition: Market of execution for last fill
+Valid values:  
+See Appendix C"
+T31="Tag: [ 31 ]      Field :[ LastPx ]      DataType: [ Price ] Definition: Price of this (last) fill.  Field not required for ExecTransType = 3 (Status)"
+T32="Tag: [ 32 ]      Field :[ LastShares ]      DataType: [ Qty ] Definition: Quantity of shares bought/sold on this (last) fill. Field not required for ExecTransType = 3 (Status)
+(Prior to FIX 4.2 this field was of type int)"
+T33="Tag: [ 33 ]      Field :[ LinesOfText ]      DataType: [ int ] Definition: Identifies number of lines of text body"
+T34="Tag: [ 34 ]      Field :[ MsgSeqNum ]      DataType: [ int ] Definition: Integer message sequence number."
+T35="Tag: [ 35 ]      Field :[ MsgType ]      DataType: [ String ] Definition: Defines message type.    ALWAYS THIRD FIELD IN MESSAGE. (Always unencrypted)
+Note: A 'U' as the first character in the MsgType field (i.e. U1, U2, etc) indicates that the  message format is privately defined between the sender and receiver.
+Valid values:  *** Note the use of lower case letters ***
+0 = Heartbeat
+1 = Test Request
+2 = Resend Request
+3 = Reject
+4 = Sequence Reset
+5 = Logout
+6 = Indication of Interest
+7 = Advertisement
+8 = Execution Report
+9 = Order Cancel Reject
+A = Logon
+B = News
+C = Email
+D = Order – Single
+E = Order – List
+F = Order Cancel Request
+G= Order Cancel/Replace Request
+H= Order Status Request
+J = Allocation
+K = List Cancel Request
+L = List Execute
+M = List Status Request
+N = List Status
+P = Allocation ACK
+Q = Don’t Know Trade (DK)
+R = Quote Request
+S = Quote
+T = Settlement Instructions
+V = Market Data Request
+W = Market Data-Snapshot/Full Refresh
+X = Market Data-Incremental Refresh
+Y = Market Data Request Reject
+Z = Quote Cancel
+a = Quote Status Request
+b = Quote Acknowledgement
+c = Security Definition Request
+d = Security Definition
+e = Security Status Request
+f = Security Status
+g = Trading Session Status Request
+h = Trading Session Status
+i = Mass Quote
+j = Business Message Reject
+k = Bid Request 
+l = Bid Response (lowercase L)
+m = List Strike Price"
+T36="Tag: [ 36 ]      Field :[ NewSeqNo ]      DataType: [ int ] Definition: New sequence number"
+T37="Tag: [ 37 ]      Field :[ OrderID ]      DataType: [ String ] Definition: Unique identifier for Order as assigned by broker.  Uniqueness must be guaranteed within a single trading day.  Firms which accept multi-day orders should consider embedding a date within the OrderID field to assure uniqueness across days."
+T38="Tag: [ 38 ]      Field :[ OrderQty ]      DataType: [ Qty ] Definition: Number of shares ordered.  This represents the number of shares for equities or based on normal convention the number of contracts for options, futures, convertible bonds, etc.
+(Prior to FIX 4.2 this field was of type int)"
+T39="Tag: [ 39 ]      Field :[ OrdStatus ]      DataType: [ char ] Definition: Identifies current status of order.
+Valid values: 
+0 = New
+1 = Partially filled
+2 = Filled
+3 = Done for day
+4 = Canceled
+5 = Replaced
+6 = Pending Cancel (e.g. result of Order Cancel Request) 7 = Stopped
+8 = Rejected
+9 = Suspended
+A = Pending New
+B = Calculated
+C = Expired
+D = Accepted for bidding
+E = Pending Replace (e.g. result of Order Cancel/Replace Request)"
+T40="Tag: [ 40 ]      Field :[ OrdType ]      DataType: [ char ] Definition: Order type.
+Valid values:  
+1 = Market
+2 = Limit
+3 = Stop
+4 = Stop limit
+5 = Market on close
+6 = With or without
+7 = Limit or better
+8 = Limit with or without
+9 = On basis
+A = On close
+B = Limit on close
+C =Forex - Market
+D = Previously quoted
+E = Previously indicated
+F = Forex - Limit
+G = Forex - Swap
+H = Forex - Previously Quoted
+I = Funari (Limit Day Order with unexecuted portion handled as Market On Close.   e.g. Japan)
+P = Pegged"
+T41="Tag: [ 41 ]      Field :[ OrigClOrdID ]      DataType: [ String ] Definition: ClOrdID of the previous order (NOT the initial order of the day) as assigned by the institution, used to identify the previous order in cancel and cancel/replace requests."
+T42="Tag: [ 42 ]      Field :[ OrigTime ]      DataType: [ UTCTimestamp ] Definition: Time of message origination (always expressed in UTC (Universal Time Coordinated, also known as GMT))"
+T43="Tag: [ 43 ]      Field :[ PossDupFlag ]      DataType: [ Boolean ] Definition: Indicates possible retransmission of message with this sequence number
+Valid values:
+Y = Possible duplicate
+N = Original transmission"
+T44="Tag: [ 44 ]      Field :[ Price ]      DataType: [ Price ] Definition: Price per share"
+T45="Tag: [ 45 ]      Field :[ RefSeqNum ]      DataType: [ int ] Definition: Reference message sequence number"
+T46="Tag: [ 46 ]      Field :[ RelatdSym ]      DataType: [ String ] Definition: Symbol of issue related to story.  Can be repeated within message to identify multiple companies."
+T47="Tag: [ 47 ]      Field :[ Rule80A(aka OrderCapacity) ]      DataType: [ char ] Definition: Note that the name of this field is changing to OrderCapacity as Rule80A is a very US market-specific term. Other world markets need to convey similar information, however, often a subset of the US values.  .  See the Rule80A (aka OrderCapacity) Usage by Market appendix for market-specific usage of this field.Valid values:
+A = Agency single order
+B = Short exempt transaction (refer to A type)
+C = Program Order, non-index arb, for Member firm/org
+D = Program Order, index arb, for Member firm/org
+E = Registered Equity Market Maker trades
+F = Short exempt transaction (refer to W type)
+H = Short exempt transaction (refer to I type)
+I = Individual Investor, single order
+J = Program Order, index arb, for individual customer
+K = Program Order, non-index arb, for individual customer
+L = Short exempt transaction for member competing market-maker affiliated with the firm clearing the trade (refer to P and O types)
+M = Program Order, index arb, for other member
+N = Program Order, non-index arb, for other member
+O = Competing dealer trades
+P = Principal
+R = Competing dealer trades
+S = Specialist trades
+T = Competing dealer trades
+U = Program Order, index arb, for other agency
+W = All other orders as agent for other member
+X = Short exempt transaction for member competing market-maker not affiliated with the firm clearing the trade (refer to W and T types)
+Y = Program Order, non-index arb, for other agency
+Z = Short exempt transaction for non-member competing market-maker (refer to A and R types)"
+T48="Tag: [ 48 ]      Field :[ SecurityID ]      DataType: [ String ] Definition: CUSIP or other alternate security identifier"
+T49="Tag: [ 49 ]      Field :[ SenderCompID ]      DataType: [ String ] Definition: Assigned value used to identify firm sending message."
+T50="Tag: [ 50 ]      Field :[ SenderSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator (desk, trader, etc.)"
+T51="Tag: [ 51 ]      Field :[ SendingDate   (no longer used) ]      DataType: [ LocalMktDate ] Definition: No longer used.  Included here for reference to prior versions."
+T52="Tag: [ 52 ]      Field :[ SendingTime ]      DataType: [ UTCTimestamp ] Definition: Time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T53="Tag: [ 53 ]      Field :[ Shares ]      DataType: [ Qty ] Definition: Number of shares
+(Prior to FIX 4.2 this field was of type int)"
+T54="Tag: [ 54 ]      Field :[ Side ]      DataType: [ char ] Definition: Side of order
+Valid values:
+1 = Buy
+2 = Sell
+3 = Buy minus
+4 = Sell plus
+5 = Sell short
+6 = Sell short exempt
+7 = Undisclosed (valid for IOI and List Order messages only)
+8 = Cross (orders where counterparty is an exchange, valid for all messages except IOIs)
+9 = Cross short"
+T55="Tag: [ 55 ]      Field :[ Symbol ]      DataType: [ String ] Definition: Ticker symbol"
+T56="Tag: [ 56 ]      Field :[ TargetCompID ]      DataType: [ String ] Definition: Assigned value used to identify receiving firm."
+T57="Tag: [ 57 ]      Field :[ TargetSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific individual or unit intended to receive message.  ADMIN reserved for administrative messages not intended for a specific user."
+T58="Tag: [ 58 ]      Field :[ Text ]      DataType: [ String ] Definition: Free format text string
+(Note: this field does not have a specified maximum length)"
+T59="Tag: [ 59 ]      Field :[ TimeInForce ]      DataType: [ char ] Definition: Specifies how long the order remains in effect.  Absence of this field is interpreted as DAY.
+Valid values:  
+0 = Day
+1 = Good Till Cancel  (GTC)
+2 = At the Opening  (OPG)
+3 = Immediate or Cancel  (IOC)
+4 = Fill or Kill  (FOK)
+5 = Good Till Crossing  (GTX)
+6 = Good Till Date"
+T60="Tag: [ 60 ]      Field :[ TransactTime ]      DataType: [ UTCTimestamp ] Definition: Time of execution/order creation (expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T61="Tag: [ 61 ]      Field :[ Urgency ]      DataType: [ char ] Definition: Urgency flag
+Valid values:  
+0 = Normal
+1 = Flash
+2 = Background"
+T62="Tag: [ 62 ]      Field :[ ValidUntilTime ]      DataType: [ UTCTimestamp ] Definition: Indicates expiration time of indication message (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T63="Tag: [ 63 ]      Field :[ SettlmntTyp ]      DataType: [ char ] Definition: Indicates order settlement period.  Absence of this field is interpreted as Regular.  Regular is defined as the default settlement period for the particular security on the exchange of execution.
+Valid values:
+0 = Regular
+1 = Cash
+2 = Next Day
+3 = T+2
+4 = T+3
+5 = T+4
+6 = Future
+7 = When Issued
+8 = Sellers Option
+9 = T+5"
+T64="Tag: [ 64 ]      Field :[ FutSettDate ]      DataType: [ LocalMktDate ] Definition: Specific date of trade settlement (SettlementDate) in YYYYMMDD format.  Required when SettlmntTyp = 6 (Future) or SettlmntTyp = 8 (Sellers Option).  (expressed in local time at place of settlement)"
+T65="Tag: [ 65 ]      Field :[ SymbolSfx ]      DataType: [ String ] Definition: Additional information about the security (e.g. preferred, warrants, etc.).   Note also see SecurityType.
+Valid values:
+As defined in the NYSE Stock and bond Symbol Directory and in the AMEX Fitch Directory"
+T66="Tag: [ 66 ]      Field :[ ListID ]      DataType: [ String ] Definition: Unique identifier for list as assigned by institution, used to associate multiple individual orders.  Uniqueness must be guaranteed within a single trading day.  Firms which generate multi-day orders should consider embedding a date within the ListID field to assure uniqueness across days."
+T67="Tag: [ 67 ]      Field :[ ListSeqNo ]      DataType: [ int ] Definition: Sequence of individual order within list (i.e. ListSeqNo of ListNoOrds, 2 of 25, 3 of 25,   . . . )"
+T68="Tag: [ 68 ]      Field :[ TotNoOrders(formerly named: ListNoOrds) ]      DataType: [ int ] Definition: Total number of list order entries across all messages. Should be the sum of all NoOrders in each message that has repeating list order entries related to the same ListID. Used to support fragmentation.
+(Prior to FIX 4.2 this field was named 'ListNoOrds')"
+T69="Tag: [ 69 ]      Field :[ ListExecInst ]      DataType: [ String ] Definition: Free format text message containing list handling and execution instructions."
+T70="Tag: [ 70 ]      Field :[ AllocID ]      DataType: [ String ] Definition: Unique identifier for allocation message.
+(Prior to FIX 4.1 this field was of type int)"
+T71="Tag: [ 71 ]      Field :[ AllocTransType ]      DataType: [ char ] Definition: Identifies allocation transaction type
+Valid values:
+0 = New
+1 = Replace
+2 = Cancel
+3 = Preliminary (without MiscFees and NetMoney)
+4 = Calculated (includes MiscFees and NetMoney)
+5 = Calculated without Preliminary (sent unsolicited by broker, includes MiscFees and NetMoney)"
+T72="Tag: [ 72 ]      Field :[ RefAllocID ]      DataType: [ String ] Definition: Reference identifier to be used with Replace, Cancel, and Calculated AllocTransType messages.
+(Prior to FIX 4.1 this field was of type int)"
+T73="Tag: [ 73 ]      Field :[ NoOrders ]      DataType: [ int ] Definition: Indicates number of orders to be combined for average pricing and allocation."
+T74="Tag: [ 74 ]      Field :[ AvgPrxPrecision ]      DataType: [ int ] Definition: Indicates number of decimal places to be used for average pricing.  Absence of this field indicates that default precision arranged by the broker/institution is to be used."
+T75="Tag: [ 75 ]      Field :[ TradeDate ]      DataType: [ LocalMktDate ] Definition: Indicates date of trade referenced in this message in YYYYMMDD format.  Absence of this field indicates current day (expressed in local time at place of trade)."
+T76="Tag: [ 76 ]      Field :[ ExecBroker ]      DataType: [ String ] Definition: Identifies executing / give-up broker.  Standard NASD market-maker mnemonic is preferred."
+T77="Tag: [ 77 ]      Field :[ OpenClose ]      DataType: [ char ] Definition: Indicates whether the resulting position after a  trade should be an opening position or closing position. Used for omnibus accounting - where accounts are held on a gross basis instead of being netted together.
+Valid Values:
+O=Open 
+C=Close"
+T78="Tag: [ 78 ]      Field :[ NoAllocs ]      DataType: [ int ] Definition: Number of  repeating AllocAccount/AllocPrice entries."
+T79="Tag: [ 79 ]      Field :[ AllocAccount ]      DataType: [ String ] Definition: Sub-account mnemonic"
+T80="Tag: [ 80 ]      Field :[ AllocShares ]      DataType: [ Qty ] Definition: Number of shares to be allocated to specific sub-account
+(Prior to FIX 4.2 this field was of type int)"
+T81="Tag: [ 81 ]      Field :[ ProcessCode ]      DataType: [ char ] Definition: Processing code for sub-account.  Absence of this field in AllocAccount / AllocPrice/AllocShares / ProcessCode instance indicates regular trade.
+Valid values:
+0 = regular
+1 = soft dollar
+2 = step-in
+3 = step-out
+4 = soft-dollar step-in
+5 = soft-dollar step-out
+6 = plan sponsor"
+T82="Tag: [ 82 ]      Field :[ NoRpts ]      DataType: [ int ] Definition: Total number of reports within series."
+T83="Tag: [ 83 ]      Field :[ RptSeq ]      DataType: [ int ] Definition: Sequence number of message within report series."
+T84="Tag: [ 84 ]      Field :[ CxlQty ]      DataType: [ Qty ] Definition: Total number of shares canceled for this order.
+(Prior to FIX 4.2 this field was of type int)"
+T85="Tag: [ 85 ]      Field :[ NoDlvyInst(no longer used) ]      DataType: [ int ] Definition: Number of delivery instruction fields to follow
+No longer used.  Included here for reference to prior versions."
+T86="Tag: [ 86 ]      Field :[ DlvyInst(no longer used) ]      DataType: [ String ] Definition: Free format text field to indicate delivery instructions
+No longer used.  Included here for reference to prior versions."
+T87="Tag: [ 87 ]      Field :[ AllocStatus ]      DataType: [ int ] Definition: Identifies status of allocation.
+Valid values:
+0 = accepted (successfully processed)
+1 = rejected
+2 = partial accept
+3 = received (received, not yet processed)"
+T88="Tag: [ 88 ]      Field :[ AllocRejCode ]      DataType: [ int ] Definition: Identifies reason for rejection.
+Valid values:
+0 = unknown account(s)
+1 = incorrect quantity
+2 = incorrect average price
+3 = unknown executing broker mnemonic
+4 = commission difference
+5 = unknown OrderID
+6 = unknown ListID
+7 = other"
+T89="Tag: [ 89 ]      Field :[ Signature ]      DataType: [ data ] Definition: Electronic signature"
+T90="Tag: [ 90 ]      Field :[ SecureDataLen ]      DataType: [ Length ] Definition: Length of encrypted message"
+T91="Tag: [ 91 ]      Field :[ SecureData ]      DataType: [ data ] Definition: Actual encrypted data stream"
+T92="Tag: [ 92 ]      Field :[ BrokerOfCredit ]      DataType: [ String ] Definition: Broker to receive trade credit."
+T93="Tag: [ 93 ]      Field :[ SignatureLength ]      DataType: [ Length ] Definition: Number of bytes in signature field."
+T94="Tag: [ 94 ]      Field :[ EmailType ]      DataType: [ char ] Definition: Email message type.
+Valid values:
+0 = New
+1 = Reply
+2 = Admin Reply"
+T95="Tag: [ 95 ]      Field :[ RawDataLength ]      DataType: [ Length ] Definition: Number of bytes in raw data field."
+T96="Tag: [ 96 ]      Field :[ RawData ]      DataType: [ data ] Definition: Unformatted raw data, can include bitmaps, word processor documents, etc."
+T97="Tag: [ 97 ]      Field :[ PossResend ]      DataType: [ Boolean ] Definition: Indicates that message may contain information that has been sent under another sequence number.
+Valid Values:
+ Y=Possible resend
+N=Original transmission"
+T98="Tag: [ 98 ]      Field :[ EncryptMethod ]      DataType: [ int ] Definition: Method of encryption.
+Valid values:
+0 = None / other
+1 = PKCS (proprietary)
+2 = DES (ECB mode)
+3 = PKCS/DES (proprietary)
+4 = PGP/DES (defunct)
+5 = PGP/DES-MD5  (see app note on FIX web site)
+6 = PEM/DES-MD5  (see app note on FIX web site)"
+T99="Tag: [ 99 ]      Field :[ StopPx ]      DataType: [ Price ] Definition: Price per share"
+T100="Tag: [ 100 ]      Field :[ ExDestination ]      DataType: [ Exchange ] Definition: Execution destination as defined by institution when order is entered.
+Valid values:
+See Appendix C"
+T101="Tag: [ 101 ]      Field :[ (Not Defined) ]      DataType: [ n/a ] Definition: This field has not been defined."
+T102="Tag: [ 102 ]      Field :[ CxlRejReason ]      DataType: [ int ] Definition: Code to identify reason for cancel rejection.
+Valid values:
+0 = Too late to cancel
+1 = Unknown order
+2 = Broker Option
+3 = Order already in Pending Cancel or Pending Replace status"
+T103="Tag: [ 103 ]      Field :[ OrdRejReason ]      DataType: [ int ] Definition: Code to identify reason for order rejection.
+Valid values:
+0 = Broker option
+1 = Unknown symbol
+2 = Exchange closed
+3 = Order exceeds limit
+4 = Too late to enter
+5 = Unknown Order
+6 = Duplicate Order (e.g. dupe ClOrdID)
+7 = Duplicate of a verbally communicated order
+8 = Stale Order"
+T104="Tag: [ 104 ]      Field :[ IOIQualifier ]      DataType: [ char ] Definition: Code to qualify IOI use.
+Valid values:
+A = All or none
+C = At the close
+I = In touch with
+L = Limit
+M = More behind
+O = At the open
+P = Taking a position
+Q = At the Market (previously called Current Quote)
+R = Ready to trade
+S = Portfolio show-n
+T = Through the day
+V = Versus
+W = Indication - Working away
+X = Crossing opportunity
+Y = At the Midpoint
+Z = Pre-open"
+T105="Tag: [ 105 ]      Field :[ WaveNo ]      DataType: [ String ] Definition: Identifier to aid in the management of multiple lists derived from a single, master list."
+T106="Tag: [ 106 ]      Field :[ Issuer ]      DataType: [ String ] Definition: Company name of security issuer (e.g. International Business Machines)"
+T107="Tag: [ 107 ]      Field :[ SecurityDesc ]      DataType: [ String ] Definition: Security description."
+T108="Tag: [ 108 ]      Field :[ HeartBtInt ]      DataType: [ int ] Definition: Heartbeat interval (seconds)"
+T109="Tag: [ 109 ]      Field :[ ClientID ]      DataType: [ String ] Definition: Firm identifier used in third party-transactions (should not be a substitute for OnBehalfOfCompID/DeliverToCompID)."
+T110="Tag: [ 110 ]      Field :[ MinQty ]      DataType: [ Qty ] Definition: Minimum quantity of an order to be executed.
+
+(Prior to FIX 4.2 this field was of type int)"
+T111="Tag: [ 111 ]      Field :[ MaxFloor ]      DataType: [ Qty ] Definition: Maximum number of shares within an order to be shown on the exchange floor at any given time.
+
+(Prior to FIX 4.2 this field was of type int)"
+T112="Tag: [ 112 ]      Field :[ TestReqID ]      DataType: [ String ] Definition: Identifier included in Test Request message to be returned in resulting Heartbeat"
+T113="Tag: [ 113 ]      Field :[ ReportToExch ]      DataType: [ Boolean ] Definition: Identifies party of trade responsible for exchange reporting.
+Valid values:
+Y = Indicates that party receiving message must report trade
+N = Indicates that party sending message will report trade"
+T114="Tag: [ 114 ]      Field :[ LocateReqd ]      DataType: [ Boolean ] Definition: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
+
+Valid values:
+Y = Indicates the broker is responsible for locating the stock
+N = Indicates the broker is not required to locate"
+T115="Tag: [ 115 ]      Field :[ OnBehalfOfCompID ]      DataType: [ String ] Definition: Assigned value used to identify firm originating message if the message was delivered by a third party  i.e.   the third party firm identifier would be delivered in the SenderCompID field and the firm originating the message in this field."
+T116="Tag: [ 116 ]      Field :[ OnBehalfOfSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator (i.e. trader) if the message was delivered by a third party"
+T117="Tag: [ 117 ]      Field :[ QuoteID ]      DataType: [ String ] Definition: Unique identifier for quote"
+T118="Tag: [ 118 ]      Field :[ NetMoney ]      DataType: [ Amt ] Definition: Total amount due as the result of the transaction (e.g. for Buy order - principal + commission + fees) reported in currency of execution."
+T119="Tag: [ 119 ]      Field :[ SettlCurrAmt ]      DataType: [ Amt ] Definition: Total amount due expressed in settlement currency (includes the effect of the forex transaction)"
+T120="Tag: [ 120 ]      Field :[ SettlCurrency ]      DataType: [ Currency ] Definition: Currency code of settlement denomination."
+T121="Tag: [ 121 ]      Field :[ ForexReq ]      DataType: [ Boolean ] Definition: Indicates request for forex accommodation trade to be executed along with security transaction.
+Valid values:
+Y = Execute Forex after security trade
+N = Do not execute Forex after security trade"
+T122="Tag: [ 122 ]      Field :[ OrigSendingTime ]      DataType: [ UTCTimestamp ] Definition: Original time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as GMT) when transmitting orders as the result of a resend request."
+T123="Tag: [ 123 ]      Field :[ GapFillFlag ]      DataType: [ Boolean ] Definition: Indicates that the Sequence Reset message is replacing administrative or application messages which will not be resent.
+Valid values:
+Y = Gap Fill message, MsgSeqNum field valid
+N = Sequence Reset, ignore MsgSeqNum"
+T124="Tag: [ 124 ]      Field :[ NoExecs ]      DataType: [ int ] Definition: No of execution repeating group entries to follow."
+T125="Tag: [ 125 ]      Field :[ CxlType(no longer used) ]      DataType: [ char ] Definition: No longer used.  Included here for reference to prior versions."
+T126="Tag: [ 126 ]      Field :[ ExpireTime ]      DataType: [ UTCTimestamp ] Definition: Time/Date of order expiration (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T127="Tag: [ 127 ]      Field :[ DKReason ]      DataType: [ char ] Definition: Reason for execution rejection.
+Valid values:
+A = Unknown symbol
+B = Wrong side
+C = Quantity exceeds order
+D = No matching order
+E = Price exceeds limit
+Z = Other"
+T128="Tag: [ 128 ]      Field :[ DeliverToCompID ]      DataType: [ String ] Definition: Assigned value used to identify the firm targeted to receive the message if the message is delivered by a third party   i.e.  the third party firm identifier would be delivered in the TargetCompID field and the ultimate receiver firm ID in this field."
+T129="Tag: [ 129 ]      Field :[ DeliverToSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message recipient (i.e. trader) if the message is delivered by a third party"
+T130="Tag: [ 130 ]      Field :[ IOINaturalFlag ]      DataType: [ Boolean ] Definition: Indicates that IOI is the result of an existing agency order or a facilitation position resulting from an agency order, not from principal trading or order solicitation activity.
+Valid values:
+Y = Natural
+N = Not natural"
+T131="Tag: [ 131 ]      Field :[ QuoteReqID ]      DataType: [ String ] Definition: Unique identifier for quote request"
+T132="Tag: [ 132 ]      Field :[ BidPx ]      DataType: [ Price ] Definition: Bid price/rate"
+T133="Tag: [ 133 ]      Field :[ OfferPx ]      DataType: [ Price ] Definition: Offer price/rate"
+T134="Tag: [ 134 ]      Field :[ BidSize ]      DataType: [ Qty ] Definition: Quantity of bid
+(Prior to FIX 4.2 this field was of type int)"
+T135="Tag: [ 135 ]      Field :[ OfferSize ]      DataType: [ Qty ] Definition: Quantity of offer
+(Prior to FIX 4.2 this field was of type int)"
+T136="Tag: [ 136 ]      Field :[ NoMiscFees ]      DataType: [ int ] Definition: Number of repeating groups of miscellaneous fees"
+T137="Tag: [ 137 ]      Field :[ MiscFeeAmt ]      DataType: [ Amt ] Definition: Miscellaneous fee value"
+T138="Tag: [ 138 ]      Field :[ MiscFeeCurr ]      DataType: [ Currency ] Definition: Currency of miscellaneous fee"
+T139="Tag: [ 139 ]      Field :[ MiscFeeType ]      DataType: [ char ] Definition: Indicates type of miscellaneous fee.
+Valid values:
+1 = Regulatory (e.g. SEC)
+2 = Tax
+3 = Local Commission
+4 = Exchange Fees
+5 = Stamp
+6 = Levy
+7 = Other
+8 = Markup
+9 = Consumption Tax"
+T140="Tag: [ 140 ]      Field :[ PrevClosePx ]      DataType: [ Price ] Definition: Previous closing price of security."
+T141="Tag: [ 141 ]      Field :[ ResetSeqNumFlag ]      DataType: [ Boolean ] Definition: Indicates that the both sides of the FIX session should reset sequence numbers.
+Valid values:
+Y = Yes, reset sequence numbers
+N = No"
+T142="Tag: [ 142 ]      Field :[ SenderLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator’s location (i.e. geographic location and/or desk, trader)"
+T143="Tag: [ 143 ]      Field :[ TargetLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message destination’s location (i.e. geographic location and/or desk, trader)"
+T144="Tag: [ 144 ]      Field :[ OnBehalfOfLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator’s location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+T145="Tag: [ 145 ]      Field :[ DeliverToLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message recipient’s location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+T146="Tag: [ 146 ]      Field :[ NoRelatedSym ]      DataType: [ int ] Definition: Specifies the number of repeating symbols specified."
+T147="Tag: [ 147 ]      Field :[ Subject ]      DataType: [ String ] Definition: The subject of an Email message"
+T148="Tag: [ 148 ]      Field :[ Headline ]      DataType: [ String ] Definition: The headline of a News message"
+T149="Tag: [ 149 ]      Field :[ URLLink ]      DataType: [ String ] Definition: A URL (Uniform Resource Locator) link to additional information (i.e. http://www.XYZ.com/research.html)"
+T150="Tag: [ 150 ]      Field :[ ExecType ]      DataType: [ char ] Definition: Describes the specific ExecutionRpt (i.e. Pending Cancel) while OrdStatus will always identify the current order status (i.e. Partially Filled)
+Valid values: 
+0 = New
+1 = Partial fill
+2 = Fill
+3 = Done for day
+4 = Canceled
+5 = Replace
+6 = Pending Cancel  (e.g. result of Order Cancel Request)
+7 = Stopped
+8 = Rejected
+9 = Suspended
+A = Pending New
+B = Calculated
+C = Expired
+D = Restated (ExecutionRpt sent unsolicited by sellside, with ExecRestatementReason set)
+E = Pending Replace (e.g. result of Order Cancel/Replace Request)"
+T151="Tag: [ 151 ]      Field :[ LeavesQty ]      DataType: [ Qty ] Definition: Amount of shares open for further execution. If the OrdStatus is Canceled, DoneForTheDay, Expired, Calculated, or Rejected (in which case the order is no longer active) then LeavesQty could be 0, otherwise LeavesQty = OrderQty - CumQty.
+(Prior to FIX 4.2 this field was of type int)"
+T152="Tag: [ 152 ]      Field :[ CashOrderQty ]      DataType: [ Qty ] Definition: Specifies the approximate  order quantity desired in total monetary units vs. as a number of shares.  The broker would be responsible for converting and calculating a share quantity (OrderQty) based upon this amount to be used for the actual order and subsequent messages."
+T153="Tag: [ 153 ]      Field :[ AllocAvgPx ]      DataType: [ Price ] Definition: AvgPx for a specific AllocAccount"
+T154="Tag: [ 154 ]      Field :[ AllocNetMoney ]      DataType: [ Amt ] Definition: NetMoney for a specific AllocAccount"
+T155="Tag: [ 155 ]      Field :[ SettlCurrFxRate ]      DataType: [ float ] Definition: Foreign exchange rate used to compute SettlCurrAmt from Currency to SettlCurrency"
+T156="Tag: [ 156 ]      Field :[ SettlCurrFxRateCalc ]      DataType: [ char ] Definition: Specifies whether or not SettlCurrFxRate should be multiplied or divided.
+M=Multiply
+D=Divide"
+T157="Tag: [ 157 ]      Field :[ NumDaysInterest ]      DataType: [ int ] Definition: Number of Days of Interest for convertible bonds and fixed income"
+T158="Tag: [ 158 ]      Field :[ AccruedInterestRate ]      DataType: [ float ] Definition: Accrued Interest Rate for convertible bonds and fixed income"
+T159="Tag: [ 159 ]      Field :[ AccruedInterestAmt ]      DataType: [ Amt ] Definition: Amount of Accrued Interest for convertible bonds and fixed income"
+T160="Tag: [ 160 ]      Field :[ SettlInstMode ]      DataType: [ char ] Definition: Indicates mode used for Settlement Instructions
+Valid values:  
+0 = Default
+1 = Standing Instructions Provided
+2 = Specific Allocation Account Overriding
+3 = Specific Allocation Account Standing"
+T161="Tag: [ 161 ]      Field :[ AllocText ]      DataType: [ String ] Definition: Free format text related to a specific AllocAccount."
+T162="Tag: [ 162 ]      Field :[ SettlInstID ]      DataType: [ String ] Definition: Unique identifier for Settlement Instructions message."
+T163="Tag: [ 163 ]      Field :[ SettlInstTransType ]      DataType: [ char ] Definition: Settlement Instructions message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+T164="Tag: [ 164 ]      Field :[ EmailThreadID ]      DataType: [ String ] Definition: Unique identifier for an email thread (new and chain of replies)"
+T165="Tag: [ 165 ]      Field :[ SettlInstSource ]      DataType: [ char ] Definition: Indicates source of Settlement Instructions
+Valid values:  
+1 = Broker’s Instructions
+2 = Institution’s Instructions"
+T166="Tag: [ 166 ]      Field :[ SettlLocation ]      DataType: [ String ] Definition: Identifies Settlement Depository or Country Code (ISITC spec)
+Valid values: 
+  CED = CEDEL
+  DTC = Depository Trust Company
+  EUR = Euroclear
+  FED = Federal Book Entry
+  PNY= Physical
+  PTC = Participant Trust Company
+ISO Country Code = Local Market Settle Location"
+T167="Tag: [ 167 ]      Field :[ SecurityType ]      DataType: [ String ] Definition: Indicates type of security (ISITC spec)
+Valid values:  
+BA = Bankers Acceptance
+CB = Convertible Bond (Note not part of ISITC spec)
+CD = Certificate Of Deposit
+CMO = Collateralize Mortgage Obligation
+CORP = Corporate Bond
+CP = Commercial Paper
+CPP = Corporate Private Placement
+CS = Common Stock
+FHA = Federal Housing Authority
+FHL = Federal Home Loan
+FN = Federal National Mortgage Association
+FOR = Foreign Exchange Contract
+FUT = Future
+GN = Government National Mortgage Association
+GOVT = Treasuries + Agency Debenture
+IET Mortgage IOETTE
+MF = Mutual Fund
+MIO = Mortgage Interest Only
+MPO = Mortgage Principal Only
+MPP = Mortgage Private Placement
+MPT = Miscellaneous Pass-Thru
+MUNI = Municipal Bond
+NONE = No ISITC Security Type
+OPT = Option
+PS = Preferred Stock
+RP = Repurchase Agreement
+RVRP = Reverse Repurchase Agreement
+SL = Student Loan Marketing Association
+TD = Time Deposit
+USTB = US Treasury Bill
+WAR = Warrant
+ZOO = Cats, Tigers & Lions (a real code: US Treasury Receipts) 
+? = Wildcard entry (used on Security Definition Request message)"
+T168="Tag: [ 168 ]      Field :[ EffectiveTime ]      DataType: [ UTCTimestamp ] Definition: Time the details within the message should take effect (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T169="Tag: [ 169 ]      Field :[ StandInstDbType ]      DataType: [ int ] Definition: Identifies the Standing Instruction database used
+Valid values:  
+0 = Other
+1 = DTC SID
+2 = Thomson ALERT
+3 = A Global Custodian (StandInstDbName must be provided)"
+T170="Tag: [ 170 ]      Field :[ StandInstDbName ]      DataType: [ String ] Definition: Name of the Standing Instruction database represented with StandInstDbType (i.e. the Global Custodian’s name)."
+T171="Tag: [ 171 ]      Field :[ StandInstDbID ]      DataType: [ String ] Definition: Unique identifier used on the Standing Instructions database for the Standing Instructions to be referenced."
+T172="Tag: [ 172 ]      Field :[ SettlDeliveryType ]      DataType: [ int ] Definition: Identifies type of settlement
+0 = Versus. Payment: Deliver (if  Sell) or Receive (if Buy) vs. (Against) Payment 
+1 = Free: Deliver (if Sell) or Receive (if Buy) Free"
+T173="Tag: [ 173 ]      Field :[ SettlDepositoryCode ]      DataType: [ String ] Definition: Broker’s account code at the depository (i.e. CEDEL ID  for CEDEL, FINS for DTC, or Euroclear ID for Euroclear) if SettlLocation is a depository"
+T174="Tag: [ 174 ]      Field :[ SettlBrkrCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code—Swift managed) code of  the broker involved (i.e. for multi-company brokerage firms)"
+T175="Tag: [ 175 ]      Field :[ SettlInstCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code—Swift managed) code of  the institution involved (i.e. for multi-company institution firms)"
+T176="Tag: [ 176 ]      Field :[ SecuritySettlAgentName ]      DataType: [ String ] Definition: Name of SettlInstSource's local agent bank if SettlLocation is  not a depository"
+T177="Tag: [ 177 ]      Field :[ SecuritySettlAgentCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code--Swift managed) code of  the SettlInstSource's local agent bank if SettlLocation  is not a depository"
+T178="Tag: [ 178 ]      Field :[ SecuritySettlAgentAcctNum ]      DataType: [ String ] Definition: SettlInstSource's account number at local agent bank if  SettlLocation is not a depository"
+T179="Tag: [ 179 ]      Field :[ SecuritySettlAgentAcctName ]      DataType: [ String ] Definition: Name of SettlInstSource's account at local agent bank if  SettlLocation is not a depository"
+T180="Tag: [ 180 ]      Field :[ SecuritySettlAgentContactName ]      DataType: [ String ] Definition: Name of contact at local agent bank for SettlInstSource's account if SettlLocation is not a depository"
+T181="Tag: [ 181 ]      Field :[ SecuritySettlAgentContactPhone ]      DataType: [ String ] Definition: Phone number for contact at local agent bank if  SettlLocation is not a depository"
+T182="Tag: [ 182 ]      Field :[ CashSettlAgentName ]      DataType: [ String ] Definition: Name of SettlInstSource's local agent bank if SettlDeliveryType=Free"
+T183="Tag: [ 183 ]      Field :[ CashSettlAgentCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code--Swift managed) code of  the SettlInstSource's local agent bank if SettlDeliveryType=Free"
+T184="Tag: [ 184 ]      Field :[ CashSettlAgentAcctNum ]      DataType: [ String ] Definition: SettlInstSource's account number at local agent bank if SettlDeliveryType=Free"
+T185="Tag: [ 185 ]      Field :[ CashSettlAgentAcctName ]      DataType: [ String ] Definition: Name of SettlInstSource's account at local agent bank if SettlDeliveryType=Free"
+T186="Tag: [ 186 ]      Field :[ CashSettlAgentContactName ]      DataType: [ String ] Definition: Name of contact at local agent bank for SettlInstSource's account  if SettlDeliveryType=Free"
+T187="Tag: [ 187 ]      Field :[ CashSettlAgentContactPhone ]      DataType: [ String ] Definition: Phone number for contact at local agent bank for SettlInstSource's account  if SettlDeliveryType=Free"
+T188="Tag: [ 188 ]      Field :[ BidSpotRate ]      DataType: [ Price ] Definition: Bid F/X spot rate.y vary and not limited to four)"
+T189="Tag: [ 189 ]      Field :[ BidForwardPoints ]      DataType: [ PriceOffset ] Definition: Bid F/X forward points added to spot rate. May be a negative value."
+T190="Tag: [ 190 ]      Field :[ OfferSpotRate ]      DataType: [ Price ] Definition: Offer F/X spot rate."
+T191="Tag: [ 191 ]      Field :[ OfferForwardPoints ]      DataType: [ PriceOffset ] Definition: Offer F/X forward points added to spot rate. May be a negative value."
+T192="Tag: [ 192 ]      Field :[ OrderQty2 ]      DataType: [ Qty ] Definition: OrderQty of the future part of a F/X swap order."
+T193="Tag: [ 193 ]      Field :[ FutSettDate2 ]      DataType: [ LocalMktDate ] Definition: FutSettDate of the future part of a F/X swap order."
+T194="Tag: [ 194 ]      Field :[ LastSpotRate ]      DataType: [ Price ] Definition: F/X spot rate."
+T195="Tag: [ 195 ]      Field :[ LastForwardPoints ]      DataType: [ PriceOffset ] Definition: F/X forward points added to LastSpotRate.  May be a negative value."
+T196="Tag: [ 196 ]      Field :[ AllocLinkID ]      DataType: [ String ] Definition: Can be used to link two different Allocation messages (each with unique AllocID) together, i.e. for F/X Netting or Swaps.  Should be unique."
+T197="Tag: [ 197 ]      Field :[ AllocLinkType ]      DataType: [ int ] Definition: Identifies the type of Allocation linkage when AllocLinkID is used.
+Valid values:  
+0 = F/X Netting
+1 = F/X Swap"
+T198="Tag: [ 198 ]      Field :[ SecondaryOrderID ]      DataType: [ String ] Definition: Assigned by the party which accepts the order.  Can be used to provide the OrderID used by an exchange or executing system."
+T199="Tag: [ 199 ]      Field :[ NoIOIQualifiers ]      DataType: [ int ] Definition: Number of repeating groups of IOIQualifiers."
+T200="Tag: [ 200 ]      Field :[ MaturityMonthYear ]      DataType: [ month-year ] Definition: Month and Year of the maturity for SecurityType=FUT or SecurityType=OPT. Required if MaturityDay is specified.
+Format:  YYYYMM    
+(i.e. 199903)"
+T201="Tag: [ 201 ]      Field :[ PutOrCall ]      DataType: [ int ] Definition: Indicates whether an Option is for a put or call.
+Valid values:  
+0 = Put
+1 = Call"
+T202="Tag: [ 202 ]      Field :[ StrikePrice ]      DataType: [ Price ] Definition: Strike Price for an Option."
+T203="Tag: [ 203 ]      Field :[ CoveredOrUncovered ]      DataType: [ int ] Definition: Used for options
+Valid values:  
+0 = Covered
+1 = Uncovered"
+T204="Tag: [ 204 ]      Field :[ CustomerOrFirm ]      DataType: [ int ] Definition: Used for options when delivering the order to an execution system/exchange to specify if the order is for a customer or the firm placing the order itself.
+Valid values:  
+0 = Customer
+1 = Firm"
+T205="Tag: [ 205 ]      Field :[ MaturityDay ]      DataType: [ day-of-month ] Definition: Day of month used in conjunction with MaturityMonthYear to specify the maturity date for SecurityType=FUT or SecurityType=OPT.
+Valid values:  
+1-31"
+T206="Tag: [ 206 ]      Field :[ OptAttribute ]      DataType: [ char ] Definition: Can be used for SecurityType=OPT to identify a particular security.
+
+Valid values vary by SecurityExchange:  
+    For Exchange: MONEP (Paris)
+       L = Long (a.k.a. American)
+       S = Short (a.k.a. European)
+
+   For Exchanges: DTB (Frankfurt), HKSE (Hong Kong), and SOFFEX (Zurich)
+0-9 = single digit version number assigned by exchange following capital adjustments (0=current, 1=prior, 2=prior to 1, etc)."
+T207="Tag: [ 207 ]      Field :[ SecurityExchange ]      DataType: [ Exchange ] Definition: Market used to help identify a security.
+Valid values:  
+See Appendix C"
+T208="Tag: [ 208 ]      Field :[ NotifyBrokerOfCredit ]      DataType: [ Boolean ] Definition: Indicates whether or not details should be communicated to BrokerOfCredit (i.e. step-in broker).
+Valid values:  
+    Y = Details should be communicated
+N = Details should not be communicated"
+T209="Tag: [ 209 ]      Field :[ AllocHandlInst ]      DataType: [ int ] Definition: Indicates how the receiver (i.e. third party) of Allocation message should handle/process the account details.
+Valid values:  
+    1 = Match
+    2 = Forward
+3 = Forward and Match"
+T210="Tag: [ 210 ]      Field :[ MaxShow ]      DataType: [ Qty ] Definition: Maximum number of shares within an order to be shown  to other customers (i.e. sent via an IOI).
+(Prior to FIX 4.2 this field was of type int)"
+T211="Tag: [ 211 ]      Field :[ PegDifference ]      DataType: [ PriceOffset ] Definition: Amount (signed) added to the price of the peg  for a pegged order."
+T212="Tag: [ 212 ]      Field :[ XmlDataLen ]      DataType: [ Length ] Definition: Length of the XmlData data block."
+T213="Tag: [ 213 ]      Field :[ XmlData ]      DataType: [ data ] Definition: Actual XML data stream (e.g. FIXML). See approriate XML reference (e.g. FIXML).  Note: may contain embedded SOH characters."
+T214="Tag: [ 214 ]      Field :[ SettlInstRefID ]      DataType: [ String ] Definition: Reference identifier for the SettlInstID with Cancel and Replace SettlInstTransType transaction types."
+T215="Tag: [ 215 ]      Field :[ NoRoutingIDs ]      DataType: [ int ] Definition: Number of repeating groups of RoutingID and RoutingType values.
+
+See Appendix L – Pre-Trade Message Targeting/Routing"
+T216="Tag: [ 216 ]      Field :[ RoutingType ]      DataType: [ int ] Definition: Indicates the type of RoutingID specified.
+Valid values:  
+    1 = Target Firm
+    2 = Target List
+    3 = Block Firm
+4 = Block List"
+T217="Tag: [ 217 ]      Field :[ RoutingID ]      DataType: [ String ] Definition: Assigned value used to identify a specific routing destination."
+T218="Tag: [ 218 ]      Field :[ SpreadToBenchmark ]      DataType: [ PriceOffset ] Definition: For Fixed Income.  Basis points relative to a benchmark.  To be expressed as 'count of basis points' (vs. an absolute value).  E.g. High Grade Corporate Bonds may express price as basis points relative to benchmark (the Benchmark field).  Note: Basis points can be negative."
+T219="Tag: [ 219 ]      Field :[ Benchmark ]      DataType: [ char ] Definition: For Fixed Income.  Identifies the benchmark (e.g. used in conjunction with the SpreadToBenchmark field).
+Valid values:
+1 = CURVE
+2 = 5-YR
+3 = OLD-5
+4 = 10-YR
+5 = OLD-10
+6 = 30-YR
+7 = OLD-30
+8 = 3-MO-LIBOR
+9 = 6-MO-LIBOR"
+T220="Tag: [ 220 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T221="Tag: [ 221 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T222="Tag: [ 222 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T223="Tag: [ 223 ]      Field :[ CouponRate ]      DataType: [ float  For Fixed Income.  Coupon rate of the bond.  Will be zero for step-up bonds."
+T224="Tag: [ 224 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T225="Tag: [ 225 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T226="Tag: [ 226 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T227="Tag: [ 227 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T228="Tag: [ 228 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T229="Tag: [ 229 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T230="Tag: [ 230 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T231="Tag: [ 231 ]      Field :[ ContractMultiplier ]      DataType: [ float  Specifies the ratio or multiply factor to convert from contracts to shares (e.g. 1.0, 100, 1000, etc).  Applicable For Fixed Income, Convertible Bonds, Derivatives, etc.  Note: If used, quantities should be expressed in the 'nominal' (e.g. contracts vs. shares) amount."
+T232="Tag: [ 232 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T233="Tag: [ 233 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T234="Tag: [ 234 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T235="Tag: [ 235 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T236="Tag: [ 236 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T237="Tag: [ 237 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T238="Tag: [ 238 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T239="Tag: [ 239 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T240="Tag: [ 240 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T241="Tag: [ 241 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T242="Tag: [ 242 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T243="Tag: [ 243 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T244="Tag: [ 244 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T245="Tag: [ 245 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T246="Tag: [ 246 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T247="Tag: [ 247 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T248="Tag: [ 248 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T249="Tag: [ 249 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T250="Tag: [ 250 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T251="Tag: [ 251 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T252="Tag: [ 252 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T253="Tag: [ 253 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T254="Tag: [ 254 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T255="Tag: [ 255 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T256="Tag: [ 256 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T257="Tag: [ 257 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T258="Tag: [ 258 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T259="Tag: [ 259 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T260="Tag: [ 260 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T261="Tag: [ 261 ]      Field :[ Reserved/Allocated to the Fixed Income proposal ]      DataType: [   "
+T262="Tag: [ 262 ]      Field :[ MDReqID ]      DataType: [ String  Unique identifier for Market Data Request"
+T263="Tag: [ 263 ]      Field :[ SubscriptionRequestType ]      DataType: [ char  Subscription Request Type
+Valid values:
+0 = Snapshot
+1 = Snapshot + Updates (Subscribe)
+2 = Disable previous Snapshot + Update Request (Unsubscribe)"
+T264="Tag: [ 264 ]      Field :[ MarketDepth ]      DataType: [ int  Depth of market for Book Snapshot
+Valid values:
+0 = Full Book
+1 = Top of Book
+N>1 = Report best N price tiers of data"
+T265="Tag: [ 265 ]      Field :[ MDUpdateType ]      DataType: [ int  Specifies the type of Market Data update.
+Valid values:
+0 = Full Refresh
+1 = Incremental Refresh"
+T266="Tag: [ 266 ]      Field :[ AggregatedBook ]      DataType: [ Boolean  Specifies whether or not book entries should be aggregated.
+Valid values:
+Y = one book entry per side per price
+N = Multiple entries per side per price allowed
+(Not specified) = broker option"
+T267="Tag: [ 267 ]      Field :[ NoMDEntryTypes ]      DataType: [ int  Number of MDEntryType fields requested."
+T268="Tag: [ 268 ]      Field :[ NoMDEntries ]      DataType: [ int  Number of entries in Market Data message."
+T269="Tag: [ 269 ]      Field :[ MDEntryType ]      DataType: [ char  Type  Market Data entry.
+Valid values:
+0 = Bid
+1 = Offer
+2 = Trade
+3 = Index Value
+4 = Opening Price
+5 = Closing Price
+6 = Settlement Price
+7 = Trading Session High Price
+8 = Trading Session Low Price
+9 = Trading Session VWAP Price"
+T270="Tag: [ 270 ]      Field :[ MDEntryPx ]      DataType: [ Price  Price of the Market Data Entry."
+T271="Tag: [ 271 ]      Field :[ MDEntrySize ]      DataType: [ Qty  Number of shares represented by the Market Data Entry."
+T272="Tag: [ 272 ]      Field :[ MDEntryDate ]      DataType: [ UTCDate  Date of Market Data Entry."
+T273="Tag: [ 273 ]      Field :[ MDEntryTime ]      DataType: [ UTCTimeOnly  Time of Market Data Entry."
+T274="Tag: [ 274 ]      Field :[ TickDirection ]      DataType: [ char  Direction of the 'tick'.
+Valid values:
+0 = Plus Tick
+1 = Zero-Plus Tick
+2 = Minus Tick
+3 = Zero-Minus Tick"
+T275="Tag: [ 275 ]      Field :[ MDMkt ]      DataType: [ Exchange  Market posting quote / trade.
+Valid values:
+See Appendix C"
+T276="Tag: [ 276 ]      Field :[ QuoteCondition ]      DataType: [ MultipleValueString  Space-delimited list of conditions describing a quote.
+Valid values:
+A = Open / Active
+B = Closed / Inactive
+C = Exchange Best
+D = Consolidated Best
+E = Locked
+F = Crossed
+G = Depth
+H = Fast Trading
+I = Non-Firm"
+T277="Tag: [ 277 ]      Field :[ TradeCondition ]      DataType: [ MultipleValueString  Space-delimited list of conditions describing a trade
+Valid values:
+A = Cash (only) Market
+B = Average Price Trade
+C = Cash Trade (same day clearing)
+D = Next Day (only) Market
+E = Opening / Reopening Trade Detail
+F = Intraday Trade Detail
+G = Rule 127 Trade (NYSE)
+H = Rule 155 Trade (Amex)
+I = Sold Last (late reporting)
+J = Next Day Trade (next day clearing)
+K = Opened (late report of opened trade)
+L = Seller
+M = Sold (out of sequence)
+N = Stopped Stock (guarantee of price but does not execute the order)"
+T278="Tag: [ 278 ]      Field :[ MDEntryID ]      DataType: [ String  Unique Market Data Entry identifier."
+T279="Tag: [ 279 ]      Field :[ MDUpdateAction ]      DataType: [ char  Type of Market Data update action.
+Valid values:
+0 = New
+1 = Change
+2 = Delete"
+T280="Tag: [ 280 ]      Field :[ MDEntryRefID ]      DataType: [ String  Refers to a previous MDEntryID."
+T281="Tag: [ 281 ]      Field :[ MDReqRejReason ]      DataType: [ char  Reason for the rejection of a Market Data request.
+Valid values:
+0 = Unknown symbol
+1 = Duplicate MDReqID
+2 = Insufficient Bandwidth
+3 = Insufficient Permissions
+4 = Unsupported SubscriptionRequestType
+5 = Unsupported MarketDepth
+6 = Unsupported MDUpdateType
+7 = Unsupported AggregatedBook
+8 = Unsupported MDEntryType"
+T282="Tag: [ 282 ]      Field :[ MDEntryOriginator ]      DataType: [ String  Originator of a Market Data Entry"
+T283="Tag: [ 283 ]      Field :[ LocationID ]      DataType: [ String  Identification of a Market Maker’s location"
+T284="Tag: [ 284 ]      Field :[ DeskID ]      DataType: [ String  Identification of a Market Maker’s desk"
+T285="Tag: [ 285 ]      Field :[ DeleteReason ]      DataType: [ char  Reason for deletion.
+Valid values:
+0 = Cancelation / Trade Bust
+1 = Error"
+T286="Tag: [ 286 ]      Field :[ OpenCloseSettleFlag ]      DataType: [ char  Flag that identifies a price.
+Valid values:
+0 = Daily Open / Close / Settlement price
+1 = Session Open / Close / Settlement price
+2 = Delivery Settlement price"
+T287="Tag: [ 287 ]      Field :[ SellerDays ]      DataType: [ int  Specifies the number of days that may elapse before delivery of the security"
+T288="Tag: [ 288 ]      Field :[ MDEntryBuyer ]      DataType: [ String  Buying party in a trade"
+T289="Tag: [ 289 ]      Field :[ MDEntrySeller ]      DataType: [ String  Selling party in a trade"
+T290="Tag: [ 290 ]      Field :[ MDEntryPositionNo ]      DataType: [ int  Display position of a bid or offer, numbered from most competitive to least competitive, per market side, beginning with 1."
+T291="Tag: [ 291 ]      Field :[ FinancialStatus ]      DataType: [ char  Identifies a firm’s financial status.
+Valid values:
+1 = Bankrupt"
+T292="Tag: [ 292 ]      Field :[ CorporateAction ]      DataType: [ char  Identifies the type of Corporate Action.
+Valid values:
+  A = Ex-Dividend
+  B = Ex-Distribution
+  C = Ex-Rights
+  D = New
+E = Ex-Interest"
+T293="Tag: [ 293 ]      Field :[ DefBidSize ]      DataType: [ Qty  Default Bid Size."
+T294="Tag: [ 294 ]      Field :[ DefOfferSize ]      DataType: [ Qty  Default Offer Size."
+T295="Tag: [ 295 ]      Field :[ NoQuoteEntries ]      DataType: [ int  The number of quote entries for a QuoteSet."
+T296="Tag: [ 296 ]      Field :[ NoQuoteSets ]      DataType: [ int  The number of sets of quotes in the message."
+T297="Tag: [ 297 ]      Field :[ QuoteAckStatus ]      DataType: [ int  Identifies the status of the quote acknowledgement.
+Valid values:
+  0-Accepted
+  1-Canceled for Symbol(s)
+  2-Canceled  for Security Type(s)
+  3-Canceled for Underlying
+  4-Canceled All
+5-Rejected"
+T298="Tag: [ 298 ]      Field :[ QuoteCancelType ]      DataType: [ int  Identifies the type of  quote cancel.
+Valid Values:
+  1 – Cancel for Symbol(s)
+  2 – Cancel for Security Type(s)
+  3 – Cancel for Underlying Symbol
+4 – Cancel All Quotes"
+T299="Tag: [ 299 ]      Field :[ QuoteEntryID ]      DataType: [ String  Uniquely identifies the quote as part of a QuoteSet."
+T300="Tag: [ 300 ]      Field :[ QuoteRejectReason ]      DataType: [ int  Reason Quote was rejected:
+Valid Values:
+  1 = Unknown symbol (Security)
+  2 = Exchange(Security) closed
+  3 = Quote Request exceeds limit
+  4 = Too late to enter
+  5 = Unknown Quote
+  6 = Duplicate Quote  7 = Invalid bid/ask spread
+  8 = Invalid price
+9 = Not authorized to quote security"
+T301="Tag: [ 301 ]      Field :[ QuoteResponseLevel ]      DataType: [ int  Level of Response requested from receiver of quote messages.
+Valid Values:
+  0 – No Acknowledgement (Default)
+  1 – Acknowledge only negative or erroneous quotes
+2 – Acknowledge each quote messages"
+T302="Tag: [ 302 ]      Field :[ QuoteSetID ]      DataType: [ String  Unique id for the Quote Set."
+T303="Tag: [ 303 ]      Field :[ QuoteRequestType ]      DataType: [ int  Indicates the type of Quote Request being generated
+Valid values:
+  1-Manual
+2-Automatic"
+T304="Tag: [ 304 ]      Field :[ TotQuoteEntries ]      DataType: [ int  Total number of quotes for the quote set across all messages. Should be the sum of all NoQuoteEntries in each message that has repeating quotes that are part of the same quote set."
+T305="Tag: [ 305 ]      Field :[ UnderlyingIDSource ]      DataType: [ String  Underlying security’s IDSource.
+Valid values:   see IDSource field"
+T306="Tag: [ 306 ]      Field :[ UnderlyingIssuer ]      DataType: [ String  Underlying security’s Issuer.
+See Issuer field for description"
+T307="Tag: [ 307 ]      Field :[ UnderlyingSecurityDesc ]      DataType: [ String  Underlying security’s SecurityDesc.
+See SecurityDesc field for description"
+T308="Tag: [ 308 ]      Field :[ UnderlyingSecurityExchange ]      DataType: [ Exchange  Underlying security’s SecurityExchange.  Can be used to identify the underlying security.
+Valid values:  see SecurityExchange"
+T309="Tag: [ 309 ]      Field :[ UnderlyingSecurityID ]      DataType: [ String  Underlying security’s SecurityID.
+See SecurityID field for description"
+T310="Tag: [ 310 ]      Field :[ UnderlyingSecurityType ]      DataType: [ String  Underlying security’s SecurityType.
+Valid values:   see SecurityType field"
+T311="Tag: [ 311 ]      Field :[ UnderlyingSymbol ]      DataType: [ String  Underlying security’s Symbol.
+See Symbol field for description"
+T312="Tag: [ 312 ]      Field :[ UnderlyingSymbolSfx ]      DataType: [ String  Underlying security’s SymbolSfx.
+See SymbolSfx field for description"
+T313="Tag: [ 313 ]      Field :[ UnderlyingMaturityMonthYear ]      DataType: [ month-year  Underlying security’s MaturityMonthYear. Required if UnderlyingMaturityDay is specified.
+See MaturityMonthYear field for description"
+T314="Tag: [ 314 ]      Field :[ UnderlyingMaturityDay ]      DataType: [ day-of-month  Underlying security’s MaturityDay.
+See MaturityDay field for description"
+T315="Tag: [ 315 ]      Field :[ UnderlyingPutOrCall ]      DataType: [ int  Underlying security’s PutOrCall.
+See PutOrCall field for description"
+T316="Tag: [ 316 ]      Field :[ UnderlyingStrikePrice ]      DataType: [ Price  Underlying security’s StrikePrice.
+See StrikePrice field for description"
+T317="Tag: [ 317 ]      Field :[ UnderlyingOptAttribute ]      DataType: [ char  Underlying security’s OptAttribute.
+See OptAttribute field for description"
+T318="Tag: [ 318 ]      Field :[ Underlying Currency ]      DataType: [ Currency  Underlying security’s Currency.
+See Currency field for description and valid values"
+T319="Tag: [ 319 ]      Field :[ RatioQty ]      DataType: [ Quantity  Quantity of a particular leg in the security."
+T320="Tag: [ 320 ]      Field :[ SecurityReqID ]      DataType: [ String  Unique ID of a Security Definition Request."
+T321="Tag: [ 321 ]      Field :[ SecurityRequestType ]      DataType: [ int  Type of Security Definition Request.
+Valid values:
+  0 = Request Security identity and specifications
+  1 = Request Security identity for the specifications provided (Name of the security is not supplied)
+  2 = Request List Security Types
+3 = Request List Securities (Can be qualified with Symbol, SecurityType, TradingSessionID, SecurityExchange is provided then only list Securities for the specific type)"
+T322="Tag: [ 322 ]      Field :[ SecurityResponseID ]      DataType: [ String  Unique ID of a Security Definition message."
+T323="Tag: [ 323 ]      Field :[ SecurityResponseType ]      DataType: [ int  Type of Security Definition message response.
+Valid values:
+  1 = Accept security proposal as is
+  2 = Accept security proposal with revisions as indicated in the message
+  3 = List of security types returned per request 
+  4 = List of securities returned per request
+  5 = Reject security proposal
+6 = Can not match selection criteria"
+T324="Tag: [ 324 ]      Field :[ SecurityStatusReqID ]      DataType: [ String  Unique ID of a Security Status Request message."
+T325="Tag: [ 325 ]      Field :[ UnsolicitedIndicator ]      DataType: [ Boolean  Indicates whether or not message is being sent as a result of a subscription request or not.
+Valid values:
+   Y = Message is being sent unsolicited
+N = Message is being sent as a result of a prior request"
+T326="Tag: [ 326 ]      Field :[ SecurityTradingStatus ]      DataType: [ int  Identifies the trading status applicable to the transaction.
+Valid values:
+  1 = Opening Delay
+  2 = Trading Halt
+  3 = Resume
+  4 = No Open/No Resume
+  5 = Price Indication
+  6 = Trading Range Indication
+  7 = Market Imbalance Buy
+  8 = Market Imbalance Sell
+  9 = Market On Close Imbalance Buy
+  10 = Market On Close Imbalance Sell
+  11 = (not assigned)
+  12 = No Market Imbalance
+  13 = No Market On Close Imbalance
+  14 = ITS Pre-Opening
+  15 = New Price Indication
+  16 = Trade Dissemination Time
+  17 = Ready to trade (start of session)
+  18 = Not Available for trading (end of session)
+  19 = Not Traded on this Market
+20 = Unknown or Invalid"
+T327="Tag: [ 327 ]      Field :[ HaltReason ]      DataType: [ char  Denotes the reason for the Opening Delay or Trading Halt.
+Valid values:
+  I = Order Imbalance
+  X = Equipment Changeover
+  P = News Pending
+  D = News Dissemination
+  E = Order Influx
+M = Additional Information"
+T328="Tag: [ 328 ]      Field :[ InViewOfCommon ]      DataType: [ Boolean  Indicates whether or not the halt was due to Common Stock trading being halted.
+Valid values:
+  Y = Halt was due to common stock being halted
+N = Halt was not related to a halt of the common stock"
+T329="Tag: [ 329 ]      Field :[ DueToRelated ]      DataType: [ Boolean  Indicates whether or not the halt was due to the Related Security being halted.
+Valid values:
+  Y = Halt was due to related security being halted
+N = Halt was not related to a halt of the related security"
+T330="Tag: [ 330 ]      Field :[ BuyVolume ]      DataType: [ Qty  Number of shares bought."
+T331="Tag: [ 331 ]      Field :[ SellVolume ]      DataType: [ Qty  Number of shares sold."
+T332="Tag: [ 332 ]      Field :[ HighPx ]      DataType: [ Price  Represents an indication of the high end of the price range for a security prior to the open or reopen"
+T333="Tag: [ 333 ]      Field :[ LowPx ]      DataType: [ Price  Represents an indication of the low end of the price range for a security prior to the open or reopen"
+T334="Tag: [ 334 ]      Field :[ Adjustment ]      DataType: [ int  Identifies the type of adjustment.
+Valid values:
+  1 = Cancel
+  2 = Error
+3 = Correction"
+T335="Tag: [ 335 ]      Field :[ TradSesReqID ]      DataType: [ String  Unique ID of a Trading Session Status message."
+T336="Tag: [ 336 ]      Field :[ TradingSessionID ]      DataType: [ String  Identifier for Trading Session
+Can be used to represent a specific market trading session (e.g. PRE-OPEN', 'CROSS_2', 'AFTER-HOURS', 'TOSTNET1', 'TOSTNET2', etc). 
+Values should be bi-laterally agreed to between counterparties."
+T337="Tag: [ 337 ]      Field :[ ContraTrader ]      DataType: [ String  Identifies the trader (e.g. 'badge number') of the ContraBroker."
+T338="Tag: [ 338 ]      Field :[ TradSesMethod ]      DataType: [ int  Method of trading
+Valid values:
+  1 = Electronic
+  2 = Open Outcry
+3 = Two Party"
+T339="Tag: [ 339 ]      Field :[ TradSesMode ]      DataType: [ int  Trading Session Mode
+Valid values:
+  1 = Testing
+  2 = Simulated
+3 = Production"
+T340="Tag: [ 340 ]      Field :[ TradSesStatus ]      DataType: [ int  State of the trading session.
+ Valid values:
+  1 = Halted
+  2 = Open
+  3 = Closed
+  4 = Pre-Open
+5 = Pre-Close"
+T341="Tag: [ 341 ]      Field :[ TradSesStartTime ]      DataType: [ UTCTimestamp  Starting time of the trading session"
+T342="Tag: [ 342 ]      Field :[ TradSesOpenTime ]      DataType: [ UTCTimestamp  Time of the opening of the trading session"
+T343="Tag: [ 343 ]      Field :[ TradSesPreCloseTime ]      DataType: [ UTCTimestamp  Time of the pre-closed of the trading session"
+T344="Tag: [ 344 ]      Field :[ TradSesCloseTime ]      DataType: [ UTCTimestamp  Closing time of the trading session"
+T345="Tag: [ 345 ]      Field :[ TradSesEndTime ]      DataType: [ UTCTimestamp  End time of the trading session"
+T346="Tag: [ 346 ]      Field :[ NumberOfOrders ]      DataType: [ int  Number of orders in the market."
+T347="Tag: [ 347 ]      Field :[ MessageEncoding ]      DataType: [ String  Type of message encoding (non-ASCII (non-English) characters) used in a message’s Encoded fields.
+Valid values:
+  ISO-2022-JP   (for using JIS)
+  EUC-JP           (for using EUC)
+  Shift_JIS         (for using SJIS)
+UTF-8             (for using Unicode)"
+T348="Tag: [ 348 ]      Field :[ EncodedIssuerLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedIssuer field."
+T349="Tag: [ 349 ]      Field :[ EncodedIssuer ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Issuer field in the encoded format specified via the MessageEncoding field.  If used, the ASCII (English) representation should also be specified in the Issuer field."
+T350="Tag: [ 350 ]      Field :[ EncodedSecurityDescLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedSecurityDesc field."
+T351="Tag: [ 351 ]      Field :[ EncodedSecurityDesc ]      DataType: [ data  Encoded (non-ASCII characters) representation of the SecurityDesc field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the SecurityDesc field."
+T352="Tag: [ 352 ]      Field :[ EncodedListExecInstLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedListExecInst field."
+T353="Tag: [ 353 ]      Field :[ EncodedListExecInst ]      DataType: [ data  Encoded (non-ASCII characters) representation of the ListExecInst field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the ListExecInst field."
+T354="Tag: [ 354 ]      Field :[ EncodedTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedText field."
+T355="Tag: [ 355 ]      Field :[ EncodedText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Text field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Text field."
+T356="Tag: [ 356 ]      Field :[ EncodedSubjectLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedSubject field."
+T357="Tag: [ 357 ]      Field :[ EncodedSubject ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Subject field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Subject field."
+T358="Tag: [ 358 ]      Field :[ EncodedHeadlineLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedHeadline field."
+T359="Tag: [ 359 ]      Field :[ EncodedHeadline ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Headline field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Headline field."
+T360="Tag: [ 360 ]      Field :[ EncodedAllocTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedAllocText field."
+T361="Tag: [ 361 ]      Field :[ EncodedAllocText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the AllocText field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the AllocText field."
+T362="Tag: [ 362 ]      Field :[ EncodedUnderlyingIssuerLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedUnderlyingIssuer field."
+T363="Tag: [ 363 ]      Field :[ EncodedUnderlyingIssuer ]      DataType: [ data  Encoded (non-ASCII characters) representation of the UnderlyingIssuer field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the UnderlyingIssuer field."
+T364="Tag: [ 364 ]      Field :[ EncodedUnderlyingSecurityDescLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedUnderlyingSecurityDesc field."
+T365="Tag: [ 365 ]      Field :[ EncodedUnderlyingSecurityDesc ]      DataType: [ data  Encoded (non-ASCII characters) representation of the UnderlyingSecurityDesc field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the UnderlyingSecurityeDesc  field."
+T366="Tag: [ 366 ]      Field :[ AllocPrice ]      DataType: [ Price  Executed price for an AllocAccount entry used when using executed price vs. average price allocations (e.g. Japan)."
+T367="Tag: [ 367 ]      Field :[ QuoteSetValidUntilTime ]      DataType: [ UTCTimestamp  Indicates expiration time of this particular QuoteSet (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T368="Tag: [ 368 ]      Field :[ QuoteEntryRejectReason ]      DataType: [ int  Reason Quote Entry was rejected:
+Valid values:
+  1 = Unknown symbol (Security)
+  2 = Exchange(Security) closed
+  3 = Quote exceeds limit
+  4 = Too late to enter
+  5 = Unknown Quote
+  6 = Duplicate Quote
+  7 = Invalid bid/ask spread
+  8 = Invalid price
+9 = Not authorized to quote security"
+T369="Tag: [ 369 ]      Field :[ LastMsgSeqNumProcessed ]      DataType: [ int  The last MsgSeqNum value received and processed.  Can be specified on every message sent.  Useful for detecting a backlog with a counterparty."
+T370="Tag: [ 370 ]      Field :[ OnBehalfOfSendingTime ]      DataType: [ UTCTimestamp  Used when a message is sent via a hub or service bureau.  If A sends to Q (the hub) who then sends to B via a separate FIX session, then when Q sends to B the value of this field should represent the SendingTime on the message A sent to Q.   (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T371="Tag: [ 371 ]      Field :[ RefTagID ]      DataType: [ int  The tag number of the FIX field being referenced."
+T372="Tag: [ 372 ]      Field :[ RefMsgType ]      DataType: [ String  The MsgType of the FIX message being referenced."
+T373="Tag: [ 373 ]      Field :[ SessionRejectReason ]      DataType: [ int  Code to identify reason for a session-level Reject message.
+Valid values:
+0 = Invalid tag number
+1 = Required tag missing
+2 = Tag not defined for this message type
+3 = Undefined Tag
+4 = Tag specified without a value
+5 = Value is incorrect (out of range) for this tag
+6 = Incorrect data format for value
+7 = Decryption problem
+8 = Signature problem
+9 = CompID problem
+10 = SendingTime accuracy problem
+11 = Invalid MsgType"
+T374="Tag: [ 374 ]      Field :[ BidRequestTransType ]      DataType: [ char  Identifies the Bid Request message type.
+Valid values:
+N = New
+C = Cancel"
+T375="Tag: [ 375 ]      Field :[ ContraBroker ]      DataType: [ String  Identifies contra broker.  Standard NASD market-maker mnemonic is preferred."
+T376="Tag: [ 376 ]      Field :[ ComplianceID ]      DataType: [ String  ID used to represent this transaction for compliance purposes (e.g. OATS reporting)."
+T377="Tag: [ 377 ]      Field :[ SolicitedFlag ]      DataType: [ Boolean  Indicates whether or not the order was solicited.
+Valid values:
+Y = Was solcitied
+N = Was not solicited"
+T378="Tag: [ 378 ]      Field :[ ExecRestatementReason ]      DataType: [ int  Code to identify reason for an ExecutionRpt message sent with ExecType=Restated or used when communicating an unsolicited cancel.
+ Valid values:
+0 = GT Corporate action
+1 = GT renewal / restatement (no corporate action)
+2 = Verbal change
+3 = Repricing of order
+4 = Broker option
+5 = Partial decline of OrderQty (e.g. exchange-initiated partial cancel)"
+T379="Tag: [ 379 ]      Field :[ BusinessRejectRefID ]      DataType: [ String  The value of the business-level ID field on the message being referenced."
+T380="Tag: [ 380 ]      Field :[ BusinessRejectReason ]      DataType: [ int  Code to identify reason for a Business Message Reject message.
+Valid values:
+0 = Other
+1 = Unkown ID
+2 = Unknown Security
+3 = Unsupported Message Type
+4 = Application not available
+5 = Conditionally Required Field Missing"
+T381="Tag: [ 381 ]      Field :[ GrossTradeAmt ]      DataType: [ Amt  Total amount traded (e.g. CumQty * AvgPx) expressed in units of currency."
+T382="Tag: [ 382 ]      Field :[ NoContraBrokers ]      DataType: [ int  The number of ContraBroker entries."
+T383="Tag: [ 383 ]      Field :[ MaxMessageSize ]      DataType: [ int  Maximum number of bytes supported for a single message."
+T384="Tag: [ 384 ]      Field :[ NoMsgTypes ]      DataType: [ int  Number of MsgTypes in repeating group."
+T385="Tag: [ 385 ]      Field :[ MsgDirection ]      DataType: [ char  Specifies the direction of the messsage.
+Valid values:
+S = Send
+R = Receive"
+T386="Tag: [ 386 ]      Field :[ NoTradingSessions ]      DataType: [ int  Number of TradingSessionIDs in repeating group."
+T387="Tag: [ 387 ]      Field :[ TotalVolumeTraded ]      DataType: [ Qty  Total volume (quantity) traded."
+T388="Tag: [ 388 ]      Field :[ DiscretionInst ]      DataType: [ char  Code to identify the price a DiscretionOffset is related to and should be mathematically added to.
+Valid values:
+0 = Related to displayed price
+1 = Related to market price
+2 = Related to primary price
+3 = Related to local primary price
+4 = Related to midpoint price
+5 = Related to last trade price"
+T389="Tag: [ 389 ]      Field :[ DiscretionOffset ]      DataType: [ PriceOffset  Amount (signed) added to the related to price specified via DiscretionInst."
+T390="Tag: [ 390 ]      Field :[ BidID ]      DataType: [ String  Unique identifier for Bid Response as assigned by broker.  Uniqueness must be guaranteed within a single trading day."
+T391="Tag: [ 391 ]      Field :[ ClientBidID ]      DataType: [ String  Unique identifier for a Bid Request as assigned by institution.  Uniqueness must be guaranteed within a single trading day."
+T392="Tag: [ 392 ]      Field :[ ListName ]      DataType: [ String  Descriptive name for list order."
+T393="Tag: [ 393 ]      Field :[ TotalNumSecurities ]      DataType: [ int  Total number of securities."
+T394="Tag: [ 394 ]      Field :[ BidType ]      DataType: [ int  Code to identify the type of Bid Request.
+Valid values:
+1 – Non Disclosed Style (e.g. US/European)
+2 – Disclosed  Style (e.g. Japanese)
+3 – No Bidding Process"
+T395="Tag: [ 395 ]      Field :[ NumTickets ]      DataType: [ int  Total number of tickets."
+T396="Tag: [ 396 ]      Field :[ SideValue1 ]      DataType: [ Amt  Amounts in currency"
+T397="Tag: [ 397 ]      Field :[ SideValue2 ]      DataType: [ Amt  Amounts in currency"
+T398="Tag: [ 398 ]      Field :[ NoBidDescriptors ]      DataType: [ int  Number of BidDescriptor entries."
+T399="Tag: [ 399 ]      Field :[ BidDescriptorType ]      DataType: [ int  Code to identify the type of BidDescriptor.
+Valid values:
+1 – Sector
+2 – Country
+3 – Index"
+T400="Tag: [ 400 ]      Field :[ BidDescriptor ]      DataType: [ String  BidDescriptor value.  Usage depends upon BidDescriptorType.
+If BidDescriptorType =1 
+Industrials etc – Free text
+If BidDescriptorType =2
+'FR' etc – ISO Country Codes
+If BidDescriptorType =3
+FT100, FT250, STOX – Free text"
+T401="Tag: [ 401 ]      Field :[ SideValueInd ]      DataType: [ int  Code to identify which 'SideValue' the value refers to.  SideValue1 and SideValue2 are used as opposed to Buy or Sell so that the basket can be quoted either way as Buy or Sell.
+Valid values:
+1 – SideValue1
+2 – SideValue 2"
+T402="Tag: [ 402 ]      Field :[ LiquidityPctLow ]      DataType: [ float  Liquidity indicator or lower limit if TotalNumSecurities > 1.  Represented as a percentage."
+T403="Tag: [ 403 ]      Field :[ LiquidityPctHigh ]      DataType: [ float  Upper liquidity indicator if TotalNumSecurities > 1.  Represented as a percentage."
+T404="Tag: [ 404 ]      Field :[ LiquidityValue ]      DataType: [ Amt  Value between LiquidityPctLow and LiquidityPctHigh in Currency"
+T405="Tag: [ 405 ]      Field :[ EFPTrackingError ]      DataType: [ float  Eg Used in EFP trades 12% (EFP – Exchange for Physical ).  Represented as a percentage."
+T406="Tag: [ 406 ]      Field :[ FairValue ]      DataType: [ Amt  Used in EFP trades"
+T407="Tag: [ 407 ]      Field :[ OutsideIndexPct ]      DataType: [ float  Used in EFP trades.  Represented as a percentage."
+T408="Tag: [ 408 ]      Field :[ ValueOfFutures ]      DataType: [ Amt  Used in EFP trades"
+T409="Tag: [ 409 ]      Field :[ LiquidityIndType ]      DataType: [ int  Code to identify the type of liquidity indicator.
+Valid values:
+1 – 5day moving average
+2 – 20 day moving average
+3 – Normal Market Size 
+4 – Other"
+T410="Tag: [ 410 ]      Field :[ WtAverageLiquidity ]      DataType: [ float  Overall weighted average liquidity expressed as a % of average daily volume.  Represented as a percentage."
+T411="Tag: [ 411 ]      Field :[ ExchangeForPhysical ]      DataType: [ Boolean  Indicates whether or not to exchange for phsyical.
+Valid values:
+   Y = True
+N = False"
+T412="Tag: [ 412 ]      Field :[ OutMainCntryUIndex ]      DataType: [ Amt  Value of stocks in Currency"
+T413="Tag: [ 413 ]      Field :[ CrossPercent ]      DataType: [ float  Percentage of program that crosses in Currency.  Represented as a percentage."
+T414="Tag: [ 414 ]      Field :[ ProgRptReqs ]      DataType: [ int  Code to identify the desired frequency of progress reports.
+Valid values:
+1 – BuySide explicitly requests status using StatusRequest (Default) The sell-side firm can however, send a DONE status List Status Response in an unsolicited fashion
+2 – SellSide periodically sends status using ListStatus. Period optionally specified in ProgressPeriod
+3 – Real-time execution reports (to be discouraged)"
+T415="Tag: [ 415 ]      Field :[ ProgPeriodInterval ]      DataType: [ int  Time in minutes between each ListStatus report sent by SellSide. Zero means don’t send status."
+T416="Tag: [ 416 ]      Field :[ IncTaxInd ]      DataType: [ int  Code to represent whether value is net (inclusive of tax) or gross.
+Valid values:
+1 - Net
+2 - Gross"
+T417="Tag: [ 417 ]      Field :[ NumBidders ]      DataType: [ int  Indicates the total number of bidders on the list"
+T418="Tag: [ 418 ]      Field :[ TradeType ]      DataType: [ char  Code to represent the type of trade.
+Valid values:
+R: Risk Trade
+G: VWAP Guarantee
+A: Agency
+J: Guaranteed Close"
+T419="Tag: [ 419 ]      Field :[ BasisPxType ]      DataType: [ char  Code to represent the basis price type.
+Valid values:
+2: Closing Price at morning session
+3: Closing Price
+4: Current price 
+5: SQ
+6: VWAP through a day
+7: VWAP through a morning session
+8: VWAP through an afternoon session
+9: VWAP through a day except YORI
+A: VWAP through a morning session except YORI
+B: VWAP through an afternoon session except YORI
+C: Strike
+D: Open
+Z: Others"
+T420="Tag: [ 420 ]      Field :[ NoBidComponents ]      DataType: [ int  Indicates the number of list entries."
+T421="Tag: [ 421 ]      Field :[ Country ]      DataType: [ String  ISO Country Code in field"
+T422="Tag: [ 422 ]      Field :[ TotNoStrikes ]      DataType: [ int  Total number of strike price entries across all messages. Should be the sum of all NoStrikes in each message that has repeating strike price entries related to the same ListID.  Used to support fragmentation."
+T423="Tag: [ 423 ]      Field :[ PriceType ]      DataType: [ int  Code to represent the price type.
+Valid values:
+1 - Percentage
+2 - per share (e.g. cents per share)
+3 - Fixed Amount (absolute value)"
+T424="Tag: [ 424 ]      Field :[ DayOrderQty ]      DataType: [ Qty  For GT orders, the OrderQty less all shares (adjusted for stock splits) that traded on previous days.  DayOrderQty = OrderQty – (CumQty - DayCumQty)"
+T425="Tag: [ 425 ]      Field :[ DayCumQty ]      DataType: [ Qty  The number of shares on a GT order that have traded today."
+T426="Tag: [ 426 ]      Field :[ DayAvgPx ]      DataType: [ Price  The average price of shares on a GT order that have traded today."
+T427="Tag: [ 427 ]      Field :[ GTBookingInst ]      DataType: [ int  Code to identify whether to book out executions on a part-filled GT order on the day of execution or to accumulate.
+Valid values:
+0 = book out all trades on day of execution
+1 = accumulate executions until order is filled or expires 
+2 = accumulate until verbally notified otherwise"
+T428="Tag: [ 428 ]      Field :[ NoStrikes ]      DataType: [ int  Number of list strike price entries."
+T429="Tag: [ 429 ]      Field :[ ListStatusType ]      DataType: [ int  Code to represent the price type.
+Valid values:
+1 – Ack
+2 – Response
+3 – Timed
+4 – ExecStarted
+5 – AllDone
+6 – Alert"
+T430="Tag: [ 430 ]      Field :[ NetGrossInd ]      DataType: [ int  Code to represent whether value is net (inclusive of tax) or gross.
+Valid values:
+1 - Net
+2 - Gross"
+T431="Tag: [ 431 ]      Field :[ ListOrderStatus ]      DataType: [ int  Code to represent the status of a list order.
+Valid values:
+1 – InBiddingProcess
+2 – ReceivedForExecution
+3 – Executing
+4 – Canceling
+5 – Alert
+6 – All Done
+7 – Reject"
+T432="Tag: [ 432 ]      Field :[ ExpireDate ]      DataType: [ LocalMktDate  Date of order expiration (last day the order can trade), always expressed in terms of the local market date.  The time at which the order expires is determined by the local market’s business practices"
+T433="Tag: [ 433 ]      Field :[ ListExecInstType ]      DataType: [ char  Identifies the type of ListExecInst.
+ Valid values:
+1 - Immediate
+2 - Wait for Execute Instruction (e.g. a List Execute message or phone call before proceeding with execution of the list)"
+T434="Tag: [ 434 ]      Field :[ CxlRejResponseTo ]      DataType: [ char  Identifies the type of request that a Cancel Reject is in response to.
+ Valid values:
+1 - Order Cancel Request
+2 - Order Cancel/Replace Request"
+T435="Tag: [ 435 ]      Field :[ UnderlyingCouponRate ]      DataType: [ float  Underlying security’s CouponRate.
+See CouponRate field for description"
+T436="Tag: [ 436 ]      Field :[ UnderlyingContractMultiplier ]      DataType: [ float  Underlying security’s ContractMultiplier.
+See ContractMultiplier field for description"
+T437="Tag: [ 437 ]      Field :[ ContraTradeQty ]      DataType: [ Qty  Quantity traded with the ContraBroker."
+T438="Tag: [ 438 ]      Field :[ ContraTradeTime ]      DataType: [ UTCTimestamp  Identifes the time of the trade with the ContraBroker.   (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+T439="Tag: [ 439 ]      Field :[ ClearingFirm ]      DataType: [ String  Firm that will clear the trade.  Used if different from the executing firm."
+T440="Tag: [ 440 ]      Field :[ ClearingAccount ]      DataType: [ String  Supplemental accounting information forwared to clearing house/firm."
+T441="Tag: [ 441 ]      Field :[ LiquidityNumSecurities ]      DataType: [ int  Number of Securites between LiquidityPctLow and LiquidityPctHigh in Currency."
+T442="Tag: [ 442 ]      Field :[ MultiLegReportingType ]      DataType: [ char  Used to indicate what an Execution Report represents (e.g. used with multi-leg securiteis, such as option strategies, spreads, etc.).
+Valid Values:
+1 - Single Security (default if not specified)
+2 - Individual leg of a multi-leg security
+3 - Multi-leg security"
+T443="Tag: [ 443 ]      Field :[ StrikeTime ]      DataType: [ UTCTimestamp  The time at which current market prices are used to determine the value of a basket."
+T444="Tag: [ 444 ]      Field :[ ListStatusText ]      DataType: [ String  Free format text string related to List Status."
+T445="Tag: [ 445 ]      Field :[ EncodedListStatusTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedListStatusText field."
+T446="Tag: [ 446 ]      Field :[ EncodedListStatusText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the ListStatusText field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the ListStatusText field."
+Account="Tag: [ 1 ]      Field : [ Account ]      DataType: [ String ] Definition: Account mnemonic as agreed between broker and institution."
+AdvId="Tag: [ 2 ]      Field : [ AdvId ]      DataType: [ String ] Definition: Unique identifier of advertisement message.
+(Prior to FIX 4.1 this field was of type int)"
+AdvRefID="Tag: [ 3 ]      Field : [ AdvRefID ]      DataType: [ String ] Definition: Reference identifier used with CANCEL and REPLACE transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+AdvSide="Tag: [ 4 ]      Field : [ AdvSide ]      DataType: [ Char ] Definition: Broker's side of advertised trade
+Valid values: 
+B = Buy 
+S = Sell
+X = Cross
+T = Trade"
+AdvTransType="Tag: [ 5 ]      Field : [ AdvTransType ]      DataType: [ String ] Definition: Identifies advertisement message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+AvgPx="Tag: [ 6 ]      Field : [ AvgPx ]      DataType: [ Price ] Definition: Calculated average price of all fills on this order."
+BeginSeqNo="Tag: [ 7 ]      Field : [ BeginSeqNo ]      DataType: [ int ] Definition: Message sequence number of first message in range to be resent"
+BeginString="Tag: [ 8 ]      Field : [ BeginString ]      DataType: [ String ] Definition: Identifies beginning of new message and protocol version.  ALWAYS FIRST FIELD IN MESSAGE. (Always unencrypted)
+Valid values:
+FIX.4.2"
+BodyLength="Tag: [ 9 ]      Field : [ BodyLength ]      DataType: [ int ] Definition: Message length, in bytes, forward to the CheckSum field.  ALWAYS SECOND FIELD IN MESSAGE. (Always unencrypted)"
+CheckSum="Tag: [ 10 ]      Field : [ CheckSum ]      DataType: [ String ] Definition: Three byte, simple checksum  (see Appendix B: CheckSum Calculation for description).  ALWAYS LAST FIELD IN MESSAGE; i.e. serves, with the trailing <SOH>, as the end-of-message delimiter.  Always defined as three characters. (Always unencrypted)"
+ClOrdID="Tag: [ 11 ]      Field : [ ClOrdID ]      DataType: [ String ] Definition: Unique identifier for Order as assigned by institution (identified by SenderCompID or OnBehalfOfCompID as appropriate).  Uniqueness must be guaranteed within a single trading day.  Firms, particularly those  which electronically submit multi-day orders, trade globally or throughout market close periods,should ensure  uniqueness across days, for example by embedding a date within the ClOrdID field."
+Commission="Tag: [ 12 ]      Field : [ Commission ]      DataType: [ Amt ] Definition: Commission.  Note if CommType is percentage, Commission of 5% should be represented as .05."
+CommType="Tag: [ 13 ]      Field : [ CommType ]      DataType: [ char ] Definition: Commission type
+Valid values:
+1 = per share
+2 = percentage
+3 = absolute"
+CumQty="Tag: [ 14 ]      Field : [ CumQty ]      DataType: [ Qty ] Definition: Total number of shares filled.
+(Prior to FIX 4.2 this field was of type int)"
+Currency="Tag: [ 15 ]      Field : [ Currency ]      DataType: [ Currency ] Definition: Identifies currency used for price. Absence of this field is interpreted as the default for the security.  It is recommended that systems provide the currency value whenever possible.  See Appendix A: Valid Currency Codes for information on obtaining valid values."
+EndSeqNo="Tag: [ 16 ]      Field : [ EndSeqNo ]      DataType: [ int ] Definition: Message sequence number of last message in range to be resent.  If request is for a single message BeginSeqNo = EndSeqNo.  If request is for all messages subsequent to a particular message, EndSeqNo = 0 (representing infinity)."
+ExecID="Tag: [ 17 ]      Field : [ ExecID ]      DataType: [ String ] Definition: Unique identifier of execution message as assigned by broker (will be 0 (zero) for ExecTransType=3 (Status)).
+Uniqueness must be guaranteed within a single trading day or the life of a multi-day order.  Firms which accept multi-day orders should consider embedding a date within the ExecID field to assure uniqueness across days.
+(Prior to FIX 4.1 this field was of type int)"
+ExecInst="Tag: [ 18 ]      Field : [ ExecInst ]      DataType: [ MultipleValueString ] Definition: Instructions for order handling on exchange trading floor.  If more than one instruction is applicable to an order, this field can contain multiple instructions separated by space.
+Valid values:
+1 = Not held
+2 = Work
+3 = Go along
+4 = Over the day
+5 = Held
+6 = Participate don't initiate
+7 = Strict scale
+8 = Try to scale
+9 = Stay on bidside
+0 = Stay on offerside
+A = No cross (cross is forbidden)
+B = OK to cross
+C = Call first
+D = Percent of volume (indicates that the sender does not want to be all of the volume on the floor vs. a specific percentage)
+E = Do not increase - DNI
+F = Do not reduce - DNR
+G = All or none - AON
+I = Institutions only
+L = Last peg (last sale)
+M = Mid-price peg (midprice of inside quote)
+N = Non-negotiable
+O = Opening peg
+P = Market peg
+R = Primary peg (primary market - buy at bid/sell at offer)
+S = Suspend
+T = Fixed Peg to Local best bid or offer at time of order
+U = Customer Display Instruction (Rule11Ac1-1/4)
+V = Netting (for Forex)
+W = Peg to VWAP"
+ExecRefID="Tag: [ 19 ]      Field : [ ExecRefID ]      DataType: [ String ] Definition: Reference identifier used with Cancel and Correct transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+ExecTransType="Tag: [ 20 ]      Field : [ ExecTransType ]      DataType: [ char ] Definition: Identifies transaction type
+Valid values:  
+0 = New 
+1 = Cancel
+2 = Correct
+3 = Status"
+HandlInst="Tag: [ 21 ]      Field : [ HandlInst ]      DataType: [ char ] Definition: Instructions for order handling on Broker trading floor
+Valid values:
+1 = Automated execution order, private, no Broker intervention
+2 = Automated execution order, public, Broker intervention OK
+3 = Manual order, best execution"
+IDSource="Tag: [ 22 ]      Field : [ IDSource ]      DataType: [ String ] Definition: Identifies class of alternative SecurityID
+Valid values:
+1 = CUSIP
+2 = SEDOL
+3 = QUIK
+4 = ISIN number
+5 = RIC code
+6 = ISO Currency Code
+7 = ISO Country Code
+8 = Exchange Symbol
+9 = Consolidated Tape Association (CTA) Symbol (SIAC CTS/CQS line format)
+
+100+ are reserved for private security identifications"
+IOIid="Tag: [ 23 ]      Field : [ IOIid ]      DataType: [ String ] Definition: Unique identifier of IOI message.
+(Prior to FIX 4.1 this field was of type int)"
+IOIOthSvc="Tag: [ 24 ]      Field : [ IOIOthSvc   (no longer used) ]      DataType: [ char ] Definition: No longer used as of FIX 4.2.  Included here for reference to prior versions."
+IOIQltyInd="Tag: [ 25 ]      Field : [ IOIQltyInd ]      DataType: [ char ] Definition: Relative quality of indication
+Valid values:
+L = Low
+M = Medium
+H = High"
+IOIRefID="Tag: [ 26 ]      Field : [ IOIRefID ]      DataType: [ String ] Definition: Reference identifier used with CANCEL and REPLACE, transaction types.
+(Prior to FIX 4.1 this field was of type int)"
+IOIShares="Tag: [ 27 ]      Field : [ IOIShares ]      DataType: [ String ] Definition: Number of shares in numeric or relative size.
+Valid values:
+0 - 1000000000
+S = Small
+M = Medium
+L = Large"
+IOITransType="Tag: [ 28 ]      Field : [ IOITransType ]      DataType: [ char ] Definition: Identifies IOI message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+LastCapacity="Tag: [ 29 ]      Field : [ LastCapacity ]      DataType: [ char ] Definition: Broker capacity in order execution
+Valid values:  
+1 = Agent
+2 = Cross as agent
+3 = Cross as principal
+4 = Principal"
+LastMkt="Tag: [ 30 ]      Field : [ LastMkt ]      DataType: [ Exchange ] Definition: Market of execution for last fill
+Valid values:  
+See Appendix C"
+LastPx="Tag: [ 31 ]      Field : [ LastPx ]      DataType: [ Price ] Definition: Price of this (last) fill.  Field not required for ExecTransType = 3 (Status)"
+LastShares="Tag: [ 32 ]      Field : [ LastShares ]      DataType: [ Qty ] Definition: Quantity of shares bought/sold on this (last) fill. Field not required for ExecTransType = 3 (Status)
+(Prior to FIX 4.2 this field was of type int)"
+LinesOfText="Tag: [ 33 ]      Field : [ LinesOfText ]      DataType: [ int ] Definition: Identifies number of lines of text body"
+MsgSeqNum="Tag: [ 34 ]      Field : [ MsgSeqNum ]      DataType: [ int ] Definition: Integer message sequence number."
+MsgType="Tag: [ 35 ]      Field : [ MsgType ]      DataType: [ String ] Definition: Defines message type.    ALWAYS THIRD FIELD IN MESSAGE. (Always unencrypted)
+Note: A 'U' as the first character in the MsgType field (i.e. U1, U2, etc) indicates that the  message format is privately defined between the sender and receiver.
+Valid values:  *** Note the use of lower case letters ***
+0 = Heartbeat
+1 = Test Request
+2 = Resend Request
+3 = Reject
+4 = Sequence Reset
+5 = Logout
+6 = Indication of Interest
+7 = Advertisement
+8 = Execution Report
+9 = Order Cancel Reject
+A = Logon
+B = News
+C = Email
+D = Order – Single
+E = Order – List
+F = Order Cancel Request
+G= Order Cancel/Replace Request
+H= Order Status Request
+J = Allocation
+K = List Cancel Request
+L = List Execute
+M = List Status Request
+N = List Status
+P = Allocation ACK
+Q = Don’t Know Trade (DK)
+R = Quote Request
+S = Quote
+T = Settlement Instructions
+V = Market Data Request
+W = Market Data-Snapshot/Full Refresh
+X = Market Data-Incremental Refresh
+Y = Market Data Request Reject
+Z = Quote Cancel
+a = Quote Status Request
+b = Quote Acknowledgement
+c = Security Definition Request
+d = Security Definition
+e = Security Status Request
+f = Security Status
+g = Trading Session Status Request
+h = Trading Session Status
+i = Mass Quote
+j = Business Message Reject
+k = Bid Request 
+l = Bid Response (lowercase L)
+m = List Strike Price"
+NewSeqNo="Tag: [ 36 ]      Field : [ NewSeqNo ]      DataType: [ int ] Definition: New sequence number"
+OrderID="Tag: [ 37 ]      Field : [ OrderID ]      DataType: [ String ] Definition: Unique identifier for Order as assigned by broker.  Uniqueness must be guaranteed within a single trading day.  Firms which accept multi-day orders should consider embedding a date within the OrderID field to assure uniqueness across days."
+OrderQty="Tag: [ 38 ]      Field : [ OrderQty ]      DataType: [ Qty ] Definition: Number of shares ordered.  This represents the number of shares for equities or based on normal convention the number of contracts for options, futures, convertible bonds, etc.
+(Prior to FIX 4.2 this field was of type int)"
+OrdStatus="Tag: [ 39 ]      Field : [ OrdStatus ]      DataType: [ char ] Definition: Identifies current status of order.
+Valid values: 
+0 = New
+1 = Partially filled
+2 = Filled
+3 = Done for day
+4 = Canceled
+5 = Replaced
+6 = Pending Cancel (e.g. result of Order Cancel Request) 7 = Stopped
+8 = Rejected
+9 = Suspended
+A = Pending New
+B = Calculated
+C = Expired
+D = Accepted for bidding
+E = Pending Replace (e.g. result of Order Cancel/Replace Request)"
+OrdType="Tag: [ 40 ]      Field : [ OrdType ]      DataType: [ char ] Definition: Order type.
+Valid values:  
+1 = Market
+2 = Limit
+3 = Stop
+4 = Stop limit
+5 = Market on close
+6 = With or without
+7 = Limit or better
+8 = Limit with or without
+9 = On basis
+A = On close
+B = Limit on close
+C = Forex - Market
+D = Previously quoted
+E = Previously indicated
+F = Forex - Limit
+G = Forex - Swap
+H = Forex - Previously Quoted
+I = Funari (Limit Day Order with unexecuted portion handled as Market On Close.   e.g. Japan)
+P = Pegged"
+OrigClOrdID="Tag: [ 41 ]      Field : [ OrigClOrdID ]      DataType: [ String ] Definition: ClOrdID of the previous order (NOT the initial order of the day) as assigned by the institution, used to identify the previous order in cancel and cancel/replace requests."
+OrigTime="Tag: [ 42 ]      Field : [ OrigTime ]      DataType: [ UTCTimestamp ] Definition: Time of message origination (always expressed in UTC (Universal Time Coordinated, also known as GMT))"
+PossDupFlag="Tag: [ 43 ]      Field : [ PossDupFlag ]      DataType: [ Boolean ] Definition: Indicates possible retransmission of message with this sequence number
+Valid values:
+Y = Possible duplicate
+N = Original transmission"
+Price="Tag: [ 44 ]      Field : [ Price ]      DataType: [ Price ] Definition: Price per share"
+RefSeqNum="Tag: [ 45 ]      Field : [ RefSeqNum ]      DataType: [ int ] Definition: Reference message sequence number"
+RelatdSym="Tag: [ 46 ]      Field : [ RelatdSym ]      DataType: [ String ] Definition: Symbol of issue related to story.  Can be repeated within message to identify multiple companies."
+Rule80A="Tag: [ 47 ]      Field : [ Rule80A(aka OrderCapacity) ]      DataType: [ char ] Definition: Note that the name of this field is changing to OrderCapacity as Rule80A is a very US market-specific term. Other world markets need to convey similar information, however, often a subset of the US values.  .  See the Rule80A (aka OrderCapacity) Usage by Market appendix for market-specific usage of this field.Valid values:
+A = Agency single order
+B = Short exempt transaction (refer to A type)
+C = Program Order, non-index arb, for Member firm/org
+D = Program Order, index arb, for Member firm/org
+E = Registered Equity Market Maker trades
+F = Short exempt transaction (refer to W type)
+H = Short exempt transaction (refer to I type)
+I = Individual Investor, single order
+J = Program Order, index arb, for individual customer
+K = Program Order, non-index arb, for individual customer
+L = Short exempt transaction for member competing market-maker affiliated with the firm clearing the trade (refer to P and O types)
+M = Program Order, index arb, for other member
+N = Program Order, non-index arb, for other member
+O = Competing dealer trades
+P = Principal
+R = Competing dealer trades
+S = Specialist trades
+T = Competing dealer trades
+U = Program Order, index arb, for other agency
+W = All other orders as agent for other member
+X = Short exempt transaction for member competing market-maker not affiliated with the firm clearing the trade (refer to W and T types)
+Y = Program Order, non-index arb, for other agency
+Z = Short exempt transaction for non-member competing market-maker (refer to A and R types)"
+SecurityID="Tag: [ 48 ]      Field : [ SecurityID ]      DataType: [ String ] Definition: CUSIP or other alternate security identifier"
+SenderCompID="Tag: [ 49 ]      Field : [ SenderCompID ]      DataType: [ String ] Definition: Assigned value used to identify firm sending message."
+SenderSubID="Tag: [ 50 ]      Field : [ SenderSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator (desk, trader, etc.)"
+SendingDate="Tag: [ 51 ]      Field : [ SendingDate   (no longer used) ]      DataType: [ LocalMktDate ] Definition: No longer used.  Included here for reference to prior versions."
+SendingTime="Tag: [ 52 ]      Field : [ SendingTime ]      DataType: [ UTCTimestamp ] Definition: Time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+Shares="Tag: [ 53 ]      Field : [ Shares ]      DataType: [ Qty ] Definition: Number of shares
+(Prior to FIX 4.2 this field was of type int)"
+Side="Tag: [ 54 ]      Field : [ Side ]      DataType: [ char ] Definition: Side of order
+Valid values:
+1 = Buy
+2 = Sell
+3 = Buy minus
+4 = Sell plus
+5 = Sell short
+6 = Sell short exempt
+7 = Undisclosed (valid for IOI and List Order messages only)
+8 = Cross (orders where counterparty is an exchange, valid for all messages except IOIs)
+9 = Cross short"
+Symbol="Tag: [ 55 ]      Field : [ Symbol ]      DataType: [ String ] Definition: Ticker symbol"
+TargetCompID="Tag: [ 56 ]      Field : [ TargetCompID ]      DataType: [ String ] Definition: Assigned value used to identify receiving firm."
+TargetSubID="Tag: [ 57 ]      Field : [ TargetSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific individual or unit intended to receive message.  ADMIN reserved for administrative messages not intended for a specific user."
+Text="Tag: [ 58 ]      Field : [ Text ]      DataType: [ String ] Definition: Free format text string
+(Note: this field does not have a specified maximum length)"
+TimeInForce="Tag: [ 59 ]      Field : [ TimeInForce ]      DataType: [ char ] Definition: Specifies how long the order remains in effect.  Absence of this field is interpreted as DAY.
+Valid values:  
+0 = Day
+1 = Good Till Cancel  (GTC)
+2 = At the Opening  (OPG)
+3 = Immediate or Cancel  (IOC)
+4 = Fill or Kill  (FOK)
+5 = Good Till Crossing  (GTX)
+6 = Good Till Date"
+TransactTime="Tag: [ 60 ]      Field : [ TransactTime ]      DataType: [ UTCTimestamp ] Definition: Time of execution/order creation (expressed in UTC (Universal Time Coordinated, also known as GMT)"
+Urgency="Tag: [ 61 ]      Field : [ Urgency ]      DataType: [ char ] Definition: Urgency flag
+Valid values:  
+0 = Normal
+1 = Flash
+2 = Background"
+ValidUntilTime="Tag: [ 62 ]      Field : [ ValidUntilTime ]      DataType: [ UTCTimestamp ] Definition: Indicates expiration time of indication message (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+SettlmntTyp="Tag: [ 63 ]      Field : [ SettlmntTyp ]      DataType: [ char ] Definition: Indicates order settlement period.  Absence of this field is interpreted as Regular.  Regular is defined as the default settlement period for the particular security on the exchange of execution.
+Valid values:
+0 = Regular
+1 = Cash
+2 = Next Day
+3 = T+2
+4 = T+3
+5 = T+4
+6 = Future
+7 = When Issued
+8 = Sellers Option
+9 = T+ 5"
+FutSettDate="Tag: [ 64 ]      Field : [ FutSettDate ]      DataType: [ LocalMktDate ] Definition: Specific date of trade settlement (SettlementDate) in YYYYMMDD format.  Required when SettlmntTyp = 6 (Future) or SettlmntTyp = 8 (Sellers Option).  (expressed in local time at place of settlement)"
+SymbolSfx="Tag: [ 65 ]      Field : [ SymbolSfx ]      DataType: [ String ] Definition: Additional information about the security (e.g. preferred, warrants, etc.).   Note also see SecurityType.
+Valid values:
+As defined in the NYSE Stock and bond Symbol Directory and in the AMEX Fitch Directory"
+ListID="Tag: [ 66 ]      Field : [ ListID ]      DataType: [ String ] Definition: Unique identifier for list as assigned by institution, used to associate multiple individual orders.  Uniqueness must be guaranteed within a single trading day.  Firms which generate multi-day orders should consider embedding a date within the ListID field to assure uniqueness across days."
+ListSeqNo="Tag: [ 67 ]      Field : [ ListSeqNo ]      DataType: [ int ] Definition: Sequence of individual order within list (i.e. ListSeqNo of ListNoOrds, 2 of 25, 3 of 25,   . . . )"
+TotNoOrders="Tag: [ 68 ]      Field : [ TotNoOrders(formerly named: ListNoOrds) ]      DataType: [ int ] Definition: Total number of list order entries across all messages. Should be the sum of all NoOrders in each message that has repeating list order entries related to the same ListID. Used to support fragmentation.
+(Prior to FIX 4.2 this field was named 'ListNoOrds')"
+ListExecInst="Tag: [ 69 ]      Field : [ ListExecInst ]      DataType: [ String ] Definition: Free format text message containing list handling and execution instructions."
+AllocID="Tag: [ 70 ]      Field : [ AllocID ]      DataType: [ String ] Definition: Unique identifier for allocation message.
+(Prior to FIX 4.1 this field was of type int)"
+AllocTransType="Tag: [ 71 ]      Field : [ AllocTransType ]      DataType: [ char ] Definition: Identifies allocation transaction type
+Valid values:
+0 = New
+1 = Replace
+2 = Cancel
+3 = Preliminary (without MiscFees and NetMoney)
+4 = Calculated (includes MiscFees and NetMoney)
+5 = Calculated without Preliminary (sent unsolicited by broker, includes MiscFees and NetMoney)"
+RefAllocID="Tag: [ 72 ]      Field : [ RefAllocID ]      DataType: [ String ] Definition: Reference identifier to be used with Replace, Cancel, and Calculated AllocTransType messages.
+(Prior to FIX 4.1 this field was of type int)"
+NoOrders="Tag: [ 73 ]      Field : [ NoOrders ]      DataType: [ int ] Definition: Indicates number of orders to be combined for average pricing and allocation."
+AvgPrxPrecision="Tag: [ 74 ]      Field : [ AvgPrxPrecision ]      DataType: [ int ] Definition: Indicates number of decimal places to be used for average pricing.  Absence of this field indicates that default precision arranged by the broker/institution is to be used."
+TradeDate="Tag: [ 75 ]      Field : [ TradeDate ]      DataType: [ LocalMktDate ] Definition: Indicates date of trade referenced in this message in YYYYMMDD format.  Absence of this field indicates current day (expressed in local time at place of trade)."
+ExecBroker="Tag: [ 76 ]      Field : [ ExecBroker ]      DataType: [ String ] Definition: Identifies executing / give-up broker.  Standard NASD market-maker mnemonic is preferred."
+OpenClose="Tag: [ 77 ]      Field : [ OpenClose ]      DataType: [ char ] Definition: Indicates whether the resulting position after a  trade should be an opening position or closing position. Used for omnibus accounting - where accounts are held on a gross basis instead of being netted together.
+Valid Values:
+O=Open 
+C=Close"
+NoAllocs="Tag: [ 78 ]      Field : [ NoAllocs ]      DataType: [ int ] Definition: Number of  repeating AllocAccount/AllocPrice entries."
+AllocAccount="Tag: [ 79 ]      Field : [ AllocAccount ]      DataType: [ String ] Definition: Sub-account mnemonic"
+AllocShares="Tag: [ 80 ]      Field : [ AllocShares ]      DataType: [ Qty ] Definition: Number of shares to be allocated to specific sub-account
+(Prior to FIX 4.2 this field was of type int)"
+ProcessCode="Tag: [ 81 ]      Field : [ ProcessCode ]      DataType: [ char ] Definition: Processing code for sub-account.  Absence of this field in AllocAccount / AllocPrice/AllocShares / ProcessCode instance indicates regular trade.
+Valid values:
+0 = regular
+1 = soft dollar
+2 = step-in
+3 = step-out
+4 = soft-dollar step-in
+5 = soft-dollar step-out
+6 = plan sponsor"
+NoRpts="Tag: [ 82 ]      Field : [ NoRpts ]      DataType: [ int ] Definition: Total number of reports within series."
+RptSeq="Tag: [ 83 ]      Field : [ RptSeq ]      DataType: [ int ] Definition: Sequence number of message within report series."
+CxlQty="Tag: [ 84 ]      Field : [ CxlQty ]      DataType: [ Qty ] Definition: Total number of shares canceled for this order.
+(Prior to FIX 4.2 this field was of type int)"
+NoDlvyInst="Tag: [ 85 ]      Field : [ NoDlvyInst(no longer used) ]      DataType: [ int ] Definition: Number of delivery instruction fields to follow
+No longer used.  Included here for reference to prior versions."
+DlvyInst="Tag: [ 86 ]      Field : [ DlvyInst(no longer used) ]      DataType: [ String ] Definition: Free format text field to indicate delivery instructions
+No longer used.  Included here for reference to prior versions."
+AllocStatus="Tag: [ 87 ]      Field : [ AllocStatus ]      DataType: [ int ] Definition: Identifies status of allocation.
+Valid values:
+0 = accepted (successfully processed)
+1 = rejected
+2 = partial accept
+3 = received (received, not yet processed)"
+AllocRejCode="Tag: [ 88 ]      Field : [ AllocRejCode ]      DataType: [ int ] Definition: Identifies reason for rejection.
+Valid values:
+0 = unknown account(s)
+1 = incorrect quantity
+2 = incorrect average price
+3 = unknown executing broker mnemonic
+4 = commission difference
+5 = unknown OrderID
+6 = unknown ListID
+7 = other"
+Signature="Tag: [ 89 ]      Field : [ Signature ]      DataType: [ data ] Definition: Electronic signature"
+SecureDataLen="Tag: [ 90 ]      Field : [ SecureDataLen ]      DataType: [ Length ] Definition: Length of encrypted message"
+SecureData="Tag: [ 91 ]      Field : [ SecureData ]      DataType: [ data ] Definition: Actual encrypted data stream"
+BrokerOfCredit="Tag: [ 92 ]      Field : [ BrokerOfCredit ]      DataType: [ String ] Definition: Broker to receive trade credit."
+SignatureLength="Tag: [ 93 ]      Field : [ SignatureLength ]      DataType: [ Length ] Definition: Number of bytes in signature field."
+EmailType="Tag: [ 94 ]      Field : [ EmailType ]      DataType: [ char ] Definition: Email message type.
+Valid values:
+0 = New
+1 = Reply
+2 = Admin Reply"
+RawDataLength="Tag: [ 95 ]      Field : [ RawDataLength ]      DataType: [ Length ] Definition: Number of bytes in raw data field."
+RawData="Tag: [ 96 ]      Field : [ RawData ]      DataType: [ data ] Definition: Unformatted raw data, can include bitmaps, word processor documents, etc."
+PossResend="Tag: [ 97 ]      Field : [ PossResend ]      DataType: [ Boolean ] Definition: Indicates that message may contain information that has been sent under another sequence number.
+Valid Values:
+ Y=Possible resend
+N=Original transmission"
+EncryptMethod="Tag: [ 98 ]      Field : [ EncryptMethod ]      DataType: [ int ] Definition: Method of encryption.
+Valid values:
+0 = None / other
+1 = PKCS (proprietary)
+2 = DES (ECB mode)
+3 = PKCS/DES (proprietary)
+4 = PGP/DES (defunct)
+5 = PGP/DES-MD5  (see app note on FIX web site)
+6 = PEM/DES-MD5  (see app note on FIX web site)"
+StopPx="Tag: [ 99 ]      Field : [ StopPx ]      DataType: [ Price ] Definition: Price per share"
+ExDestination="Tag: [ 100 ]      Field : [ ExDestination ]      DataType: [ Exchange ] Definition: Execution destination as defined by institution when order is entered.
+Valid values:
+See Appendix C"
+CxlRejReason="Tag: [ 102 ]      Field : [ CxlRejReason ]      DataType: [ int ] Definition: Code to identify reason for cancel rejection.
+Valid values:
+0 = Too late to cancel
+1 = Unknown order
+2 = Broker Option
+3 = Order already in Pending Cancel or Pending Replace status"
+OrdRejReason="Tag: [ 103 ]      Field : [ OrdRejReason ]      DataType: [ int ] Definition: Code to identify reason for order rejection.
+Valid values:
+0 = Broker option
+1 = Unknown symbol
+2 = Exchange closed
+3 = Order exceeds limit
+4 = Too late to enter
+5 = Unknown Order
+6 = Duplicate Order (e.g. dupe ClOrdID)
+7 = Duplicate of a verbally communicated order
+8 = Stale Order"
+IOIQualifier="Tag: [ 104 ]      Field : [ IOIQualifier ]      DataType: [ char ] Definition: Code to qualify IOI use.
+Valid values:
+A = All or none
+C = At the close
+I = In touch with
+L = Limit
+M = More behind
+O = At the open
+P = Taking a position
+Q = At the Market (previously called Current Quote)
+R = Ready to trade
+S = Portfolio show-n
+T = Through the day
+V = Versus
+W = Indication - Working away
+X = Crossing opportunity
+Y = At the Midpoint
+Z = Pre-open"
+WaveNo="Tag: [ 105 ]      Field : [ WaveNo ]      DataType: [ String ] Definition: Identifier to aid in the management of multiple lists derived from a single, master list."
+Issuer="Tag: [ 106 ]      Field : [ Issuer ]      DataType: [ String ] Definition: Company name of security issuer (e.g. International Business Machines)"
+SecurityDesc="Tag: [ 107 ]      Field : [ SecurityDesc ]      DataType: [ String ] Definition: Security description."
+HeartBtInt="Tag: [ 108 ]      Field : [ HeartBtInt ]      DataType: [ int ] Definition: Heartbeat interval (seconds)"
+ClientID="Tag: [ 109 ]      Field : [ ClientID ]      DataType: [ String ] Definition: Firm identifier used in third party-transactions (should not be a substitute for OnBehalfOfCompID/DeliverToCompID)."
+MinQty="Tag: [ 110 ]      Field : [ MinQty ]      DataType: [ Qty ] Definition: Minimum quantity of an order to be executed.
+
+(Prior to FIX 4.2 this field was of type int)"
+MaxFloor="Tag: [ 111 ]      Field : [ MaxFloor ]      DataType: [ Qty ] Definition: Maximum number of shares within an order to be shown on the exchange floor at any given time.
+
+(Prior to FIX 4.2 this field was of type int)"
+TestReqID="Tag: [ 112 ]      Field : [ TestReqID ]      DataType: [ String ] Definition: Identifier included in Test Request message to be returned in resulting Heartbeat"
+ReportToExch="Tag: [ 113 ]      Field : [ ReportToExch ]      DataType: [ Boolean ] Definition: Identifies party of trade responsible for exchange reporting.
+Valid values:
+Y = Indicates that party receiving message must report trade
+N = Indicates that party sending message will report trade"
+LocateReqd="Tag: [ 114 ]      Field : [ LocateReqd ]      DataType: [ Boolean ] Definition: Indicates whether the broker is to locate the stock in conjunction with a short sell order.
+
+Valid values:
+Y = Indicates the broker is responsible for locating the stock
+N = Indicates the broker is not required to locate"
+OnBehalfOfCompID="Tag: [ 115 ]      Field : [ OnBehalfOfCompID ]      DataType: [ String ] Definition: Assigned value used to identify firm originating message if the message was delivered by a third party  i.e.   the third party firm identifier would be delivered in the SenderCompID field and the firm originating the message in this field."
+OnBehalfOfSubID="Tag: [ 116 ]      Field : [ OnBehalfOfSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator (i.e. trader) if the message was delivered by a third party"
+QuoteID="Tag: [ 117 ]      Field : [ QuoteID ]      DataType: [ String ] Definition: Unique identifier for quote"
+NetMoney="Tag: [ 118 ]      Field : [ NetMoney ]      DataType: [ Amt ] Definition: Total amount due as the result of the transaction (e.g. for Buy order - principal + commission + fees) reported in currency of execution."
+SettlCurrAmt="Tag: [ 119 ]      Field : [ SettlCurrAmt ]      DataType: [ Amt ] Definition: Total amount due expressed in settlement currency (includes the effect of the forex transaction)"
+SettlCurrency="Tag: [ 120 ]      Field : [ SettlCurrency ]      DataType: [ Currency ] Definition: Currency code of settlement denomination."
+ForexReq="Tag: [ 121 ]      Field : [ ForexReq ]      DataType: [ Boolean ] Definition: Indicates request for forex accommodation trade to be executed along with security transaction.
+Valid values:
+Y = Execute Forex after security trade
+N = Do not execute Forex after security trade"
+OrigSendingTime="Tag: [ 122 ]      Field : [ OrigSendingTime ]      DataType: [ UTCTimestamp ] Definition: Original time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as GMT) when transmitting orders as the result of a resend request."
+GapFillFlag="Tag: [ 123 ]      Field : [ GapFillFlag ]      DataType: [ Boolean ] Definition: Indicates that the Sequence Reset message is replacing administrative or application messages which will not be resent.
+Valid values:
+Y = Gap Fill message, MsgSeqNum field valid
+N = Sequence Reset, ignore MsgSeqNum"
+NoExecs="Tag: [ 124 ]      Field : [ NoExecs ]      DataType: [ int ] Definition: No of execution repeating group entries to follow."
+CxlType="Tag: [ 125 ]      Field : [ CxlType(no longer used) ]      DataType: [ char ] Definition: No longer used.  Included here for reference to prior versions."
+ExpireTime="Tag: [ 126 ]      Field : [ ExpireTime ]      DataType: [ UTCTimestamp ] Definition: Time/Date of order expiration (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+DKReason="Tag: [ 127 ]      Field : [ DKReason ]      DataType: [ char ] Definition: Reason for execution rejection.
+Valid values:
+A = Unknown symbol
+B = Wrong side
+C = Quantity exceeds order
+D = No matching order
+E = Price exceeds limit
+Z = Other"
+DeliverToCompID="Tag: [ 128 ]      Field : [ DeliverToCompID ]      DataType: [ String ] Definition: Assigned value used to identify the firm targeted to receive the message if the message is delivered by a third party   i.e.  the third party firm identifier would be delivered in the TargetCompID field and the ultimate receiver firm ID in this field."
+DeliverToSubID="Tag: [ 129 ]      Field : [ DeliverToSubID ]      DataType: [ String ] Definition: Assigned value used to identify specific message recipient (i.e. trader) if the message is delivered by a third party"
+IOINaturalFlag="Tag: [ 130 ]      Field : [ IOINaturalFlag ]      DataType: [ Boolean ] Definition: Indicates that IOI is the result of an existing agency order or a facilitation position resulting from an agency order, not from principal trading or order solicitation activity.
+Valid values:
+Y = Natural
+N = Not natural"
+QuoteReqID="Tag: [ 131 ]      Field : [ QuoteReqID ]      DataType: [ String ] Definition: Unique identifier for quote request"
+BidPx="Tag: [ 132 ]      Field : [ BidPx ]      DataType: [ Price ] Definition: Bid price/rate"
+OfferPx="Tag: [ 133 ]      Field : [ OfferPx ]      DataType: [ Price ] Definition: Offer price/rate"
+BidSize="Tag: [ 134 ]      Field : [ BidSize ]      DataType: [ Qty ] Definition: Quantity of bid
+(Prior to FIX 4.2 this field was of type int)"
+OfferSize="Tag: [ 135 ]      Field : [ OfferSize ]      DataType: [ Qty ] Definition: Quantity of offer
+(Prior to FIX 4.2 this field was of type int)"
+NoMiscFees="Tag: [ 136 ]      Field : [ NoMiscFees ]      DataType: [ int ] Definition: Number of repeating groups of miscellaneous fees"
+MiscFeeAmt="Tag: [ 137 ]      Field : [ MiscFeeAmt ]      DataType: [ Amt ] Definition: Miscellaneous fee value"
+MiscFeeCurr="Tag: [ 138 ]      Field : [ MiscFeeCurr ]      DataType: [ Currency ] Definition: Currency of miscellaneous fee"
+MiscFeeType="Tag: [ 139 ]      Field : [ MiscFeeType ]      DataType: [ char ] Definition: Indicates type of miscellaneous fee.
+Valid values:
+1 = Regulatory (e.g. SEC)
+2 = Tax
+3 = Local Commission
+4 = Exchange Fees
+5 = Stamp
+6 = Levy
+7 = Other
+8 = Markup
+9 = Consumption Tax"
+PrevClosePx="Tag: [ 140 ]      Field : [ PrevClosePx ]      DataType: [ Price ] Definition: Previous closing price of security."
+ResetSeqNumFlag="Tag: [ 141 ]      Field : [ ResetSeqNumFlag ]      DataType: [ Boolean ] Definition: Indicates that the both sides of the FIX session should reset sequence numbers.
+Valid values:
+Y = Yes, reset sequence numbers
+N = No"
+SenderLocationID="Tag: [ 142 ]      Field : [ SenderLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator’s location (i.e. geographic location and/or desk, trader)"
+TargetLocationID="Tag: [ 143 ]      Field : [ TargetLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message destination’s location (i.e. geographic location and/or desk, trader)"
+OnBehalfOfLocationID="Tag: [ 144 ]      Field : [ OnBehalfOfLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message originator’s location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+DeliverToLocationID="Tag: [ 145 ]      Field : [ DeliverToLocationID ]      DataType: [ String ] Definition: Assigned value used to identify specific message recipient’s location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+NoRelatedSym="Tag: [ 146 ]      Field : [ NoRelatedSym ]      DataType: [ int ] Definition: Specifies the number of repeating symbols specified."
+Subject="Tag: [ 147 ]      Field : [ Subject ]      DataType: [ String ] Definition: The subject of an Email message"
+Headline="Tag: [ 148 ]      Field : [ Headline ]      DataType: [ String ] Definition: The headline of a News message"
+URLLink="Tag: [ 149 ]      Field : [ URLLink ]      DataType: [ String ] Definition: A URL (Uniform Resource Locator) link to additional information (i.e. http://www.XYZ.com/research.html)"
+ExecType="Tag: [ 150 ]      Field : [ ExecType ]      DataType: [ char ] Definition: Describes the specific ExecutionRpt (i.e. Pending Cancel) while OrdStatus will always identify the current order status (i.e. Partially Filled)
+Valid values: 
+0 = New
+1 = Partial fill
+2 = Fill
+3 = Done for day
+4 = Canceled
+5 = Replace
+6 = Pending Cancel  (e.g. result of Order Cancel Request)
+7 = Stopped
+8 = Rejected
+9 = Suspended
+A = Pending New
+B = Calculated
+C = Expired
+D = Restated (ExecutionRpt sent unsolicited by sellside, with ExecRestatementReason set)
+E = Pending Replace (e.g. result of Order Cancel/Replace Request)"
+LeavesQty="Tag: [ 151 ]      Field : [ LeavesQty ]      DataType: [ Qty ] Definition: Amount of shares open for further execution. If the OrdStatus is Canceled, DoneForTheDay, Expired, Calculated, or Rejected (in which case the order is no longer active) then LeavesQty could be 0, otherwise LeavesQty = OrderQty - CumQty.
+(Prior to FIX 4.2 this field was of type int)"
+CashOrderQty="Tag: [ 152 ]      Field : [ CashOrderQty ]      DataType: [ Qty ] Definition: Specifies the approximate  order quantity desired in total monetary units vs. as a number of shares.  The broker would be responsible for converting and calculating a share quantity (OrderQty) based upon this amount to be used for the actual order and subsequent messages."
+AllocAvgPx="Tag: [ 153 ]      Field : [ AllocAvgPx ]      DataType: [ Price ] Definition: AvgPx for a specific AllocAccount"
+AllocNetMoney="Tag: [ 154 ]      Field : [ AllocNetMoney ]      DataType: [ Amt ] Definition: NetMoney for a specific AllocAccount"
+SettlCurrFxRate="Tag: [ 155 ]      Field : [ SettlCurrFxRate ]      DataType: [ float ] Definition: Foreign exchange rate used to compute SettlCurrAmt from Currency to SettlCurrency"
+SettlCurrFxRateCalc="Tag: [ 156 ]      Field : [ SettlCurrFxRateCalc ]      DataType: [ char ] Definition: Specifies whether or not SettlCurrFxRate should be multiplied or divided.
+M=Multiply
+D=Divide"
+NumDaysInterest="Tag: [ 157 ]      Field : [ NumDaysInterest ]      DataType: [ int ] Definition: Number of Days of Interest for convertible bonds and fixed income"
+AccruedInterestRate="Tag: [ 158 ]      Field : [ AccruedInterestRate ]      DataType: [ float ] Definition: Accrued Interest Rate for convertible bonds and fixed income"
+AccruedInterestAmt="Tag: [ 159 ]      Field : [ AccruedInterestAmt ]      DataType: [ Amt ] Definition: Amount of Accrued Interest for convertible bonds and fixed income"
+SettlInstMode="Tag: [ 160 ]      Field : [ SettlInstMode ]      DataType: [ char ] Definition: Indicates mode used for Settlement Instructions
+Valid values:  
+0 = Default
+1 = Standing Instructions Provided
+2 = Specific Allocation Account Overriding
+3 = Specific Allocation Account Standing"
+AllocText="Tag: [ 161 ]      Field : [ AllocText ]      DataType: [ String ] Definition: Free format text related to a specific AllocAccount."
+SettlInstID="Tag: [ 162 ]      Field : [ SettlInstID ]      DataType: [ String ] Definition: Unique identifier for Settlement Instructions message."
+SettlInstTransType="Tag: [ 163 ]      Field : [ SettlInstTransType ]      DataType: [ char ] Definition: Settlement Instructions message transaction type
+Valid values:  
+N = New
+C = Cancel
+R = Replace"
+EmailThreadID="Tag: [ 164 ]      Field : [ EmailThreadID ]      DataType: [ String ] Definition: Unique identifier for an email thread (new and chain of replies)"
+SettlInstSource="Tag: [ 165 ]      Field : [ SettlInstSource ]      DataType: [ char ] Definition: Indicates source of Settlement Instructions
+Valid values:  
+1 = Broker’s Instructions
+2 = Institution’s Instructions"
+SettlLocation="Tag: [ 166 ]      Field : [ SettlLocation ]      DataType: [ String ] Definition: Identifies Settlement Depository or Country Code (ISITC spec)
+Valid values: 
+  CED = CEDEL
+  DTC = Depository Trust Company
+  EUR = Euroclear
+  FED = Federal Book Entry
+  PNY= Physical
+  PTC = Participant Trust Company
+ISO Country Code = Local Market Settle Location"
+SecurityType="Tag: [ 167 ]      Field : [ SecurityType ]      DataType: [ String ] Definition: Indicates type of security (ISITC spec)
+Valid values:  
+BA = Bankers Acceptance
+CB = Convertible Bond (Note not part of ISITC spec)
+CD = Certificate Of Deposit
+CMO = Collateralize Mortgage Obligation
+CORP = Corporate Bond
+CP = Commercial Paper
+CPP = Corporate Private Placement
+CS = Common Stock
+FHA = Federal Housing Authority
+FHL = Federal Home Loan
+FN = Federal National Mortgage Association
+FOR = Foreign Exchange Contract
+FUT = Future
+GN = Government National Mortgage Association
+GOVT = Treasuries + Agency Debenture
+IET Mortgage IOETTE
+MF = Mutual Fund
+MIO = Mortgage Interest Only
+MPO = Mortgage Principal Only
+MPP = Mortgage Private Placement
+MPT = Miscellaneous Pass-Thru
+MUNI = Municipal Bond
+NONE = No ISITC Security Type
+OPT = Option
+PS = Preferred Stock
+RP = Repurchase Agreement
+RVRP = Reverse Repurchase Agreement
+SL = Student Loan Marketing Association
+TD = Time Deposit
+USTB = US Treasury Bill
+WAR = Warrant
+ZOO = Cats, Tigers & Lions (a real code: US Treasury Receipts) 
+? = Wildcard entry (used on Security Definition Request message)"
+EffectiveTime="Tag: [ 168 ]      Field : [ EffectiveTime ]      DataType: [ UTCTimestamp ] Definition: Time the details within the message should take effect (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+StandInstDbType="Tag: [ 169 ]      Field : [ StandInstDbType ]      DataType: [ int ] Definition: Identifies the Standing Instruction database used
+Valid values:  
+0 = Other
+1 = DTC SID
+2 = Thomson ALERT
+3 = A Global Custodian (StandInstDbName must be provided)"
+StandInstDbName="Tag: [ 170 ]      Field : [ StandInstDbName ]      DataType: [ String ] Definition: Name of the Standing Instruction database represented with StandInstDbType (i.e. the Global Custodian’s name)."
+StandInstDbID="Tag: [ 171 ]      Field : [ StandInstDbID ]      DataType: [ String ] Definition: Unique identifier used on the Standing Instructions database for the Standing Instructions to be referenced."
+SettlDeliveryType="Tag: [ 172 ]      Field : [ SettlDeliveryType ]      DataType: [ int ] Definition: Identifies type of settlement
+0 = Versus. Payment: Deliver (if  Sell) or Receive (if Buy) vs. (Against) Payment 
+1 = Free: Deliver (if Sell) or Receive (if Buy) Free"
+SettlDepositoryCode="Tag: [ 173 ]      Field : [ SettlDepositoryCode ]      DataType: [ String ] Definition: Broker’s account code at the depository (i.e. CEDEL ID  for CEDEL, FINS for DTC, or Euroclear ID for Euroclear) if SettlLocation is a depository"
+SettlBrkrCode="Tag: [ 174 ]      Field : [ SettlBrkrCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code—Swift managed) code of  the broker involved (i.e. for multi-company brokerage firms)"
+SettlInstCode="Tag: [ 175 ]      Field : [ SettlInstCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code—Swift managed) code of  the institution involved (i.e. for multi-company institution firms)"
+SecuritySettlAgentName="Tag: [ 176 ]      Field : [ SecuritySettlAgentName ]      DataType: [ String ] Definition: Name of SettlInstSource's local agent bank if SettlLocation is  not a depository"
+SecuritySettlAgentCode="Tag: [ 177 ]      Field : [ SecuritySettlAgentCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code--Swift managed) code of  the SettlInstSource's local agent bank if SettlLocation  is not a depository"
+SecuritySettlAgentAcctNum="Tag: [ 178 ]      Field : [ SecuritySettlAgentAcctNum ]      DataType: [ String ] Definition: SettlInstSource's account number at local agent bank if  SettlLocation is not a depository"
+SecuritySettlAgentAcctName="Tag: [ 179 ]      Field : [ SecuritySettlAgentAcctName ]      DataType: [ String ] Definition: Name of SettlInstSource's account at local agent bank if  SettlLocation is not a depository"
+SecuritySettlAgentContactName="Tag: [ 180 ]      Field : [ SecuritySettlAgentContactName ]      DataType: [ String ] Definition: Name of contact at local agent bank for SettlInstSource's account if SettlLocation is not a depository"
+SecuritySettlAgentContactPhone="Tag: [ 181 ]      Field : [ SecuritySettlAgentContactPhone ]      DataType: [ String ] Definition: Phone number for contact at local agent bank if  SettlLocation is not a depository"
+CashSettlAgentName="Tag: [ 182 ]      Field : [ CashSettlAgentName ]      DataType: [ String ] Definition: Name of SettlInstSource's local agent bank if SettlDeliveryType=Free"
+CashSettlAgentCode="Tag: [ 183 ]      Field : [ CashSettlAgentCode ]      DataType: [ String ] Definition: BIC (Bank Identification Code--Swift managed) code of  the SettlInstSource's local agent bank if SettlDeliveryType=Free"
+CashSettlAgentAcctNum="Tag: [ 184 ]      Field : [ CashSettlAgentAcctNum ]      DataType: [ String ] Definition: SettlInstSource's account number at local agent bank if SettlDeliveryType=Free"
+CashSettlAgentAcctName="Tag: [ 185 ]      Field : [ CashSettlAgentAcctName ]      DataType: [ String ] Definition: Name of SettlInstSource's account at local agent bank if SettlDeliveryType=Free"
+CashSettlAgentContactName="Tag: [ 186 ]      Field : [ CashSettlAgentContactName ]      DataType: [ String ] Definition: Name of contact at local agent bank for SettlInstSource's account  if SettlDeliveryType=Free"
+CashSettlAgentContactPhone="Tag: [ 187 ]      Field : [ CashSettlAgentContactPhone ]      DataType: [ String ] Definition: Phone number for contact at local agent bank for SettlInstSource's account  if SettlDeliveryType=Free"
+BidSpotRate="Tag: [ 188 ]      Field : [ BidSpotRate ]      DataType: [ Price ] Definition: Bid F/X spot rate.y vary and not limited to four)"
+BidForwardPoints="Tag: [ 189 ]      Field : [ BidForwardPoints ]      DataType: [ PriceOffset ] Definition: Bid F/X forward points added to spot rate. May be a negative value."
+OfferSpotRate="Tag: [ 190 ]      Field : [ OfferSpotRate ]      DataType: [ Price ] Definition: Offer F/X spot rate."
+OfferForwardPoints="Tag: [ 191 ]      Field : [ OfferForwardPoints ]      DataType: [ PriceOffset ] Definition: Offer F/X forward points added to spot rate. May be a negative value."
+OrderQty2="Tag: [ 192 ]      Field : [ OrderQty2 ]      DataType: [ Qty ] Definition: OrderQty of the future part of a F/X swap order."
+FutSettDate2="Tag: [ 193 ]      Field : [ FutSettDate2 ]      DataType: [ LocalMktDate ] Definition: FutSettDate of the future part of a F/X swap order."
+LastSpotRate="Tag: [ 194 ]      Field : [ LastSpotRate ]      DataType: [ Price ] Definition: F/X spot rate."
+LastForwardPoints="Tag: [ 195 ]      Field : [ LastForwardPoints ]      DataType: [ PriceOffset ] Definition: F/X forward points added to LastSpotRate.  May be a negative value."
+AllocLinkID="Tag: [ 196 ]      Field : [ AllocLinkID ]      DataType: [ String ] Definition: Can be used to link two different Allocation messages (each with unique AllocID) together, i.e. for F/X Netting or Swaps.  Should be unique."
+AllocLinkType="Tag: [ 197 ]      Field : [ AllocLinkType ]      DataType: [ int ] Definition: Identifies the type of Allocation linkage when AllocLinkID is used.
+Valid values:  
+0 = F/X Netting
+1 = F/X Swap"
+SecondaryOrderID="Tag: [ 198 ]      Field : [ SecondaryOrderID ]      DataType: [ String ] Definition: Assigned by the party which accepts the order.  Can be used to provide the OrderID used by an exchange or executing system."
+NoIOIQualifiers="Tag: [ 199 ]      Field : [ NoIOIQualifiers ]      DataType: [ int ] Definition: Number of repeating groups of IOIQualifiers."
+MaturityMonthYear="Tag: [ 200 ]      Field : [ MaturityMonthYear ]      DataType: [ month-year ] Definition: Month and Year of the maturity for SecurityType=FUT or SecurityType=OPT. Required if MaturityDay is specified.
+Format:  YYYYMM    
+(i.e. 199903)"
+PutOrCall="Tag: [ 201 ]      Field : [ PutOrCall ]      DataType: [ int ] Definition: Indicates whether an Option is for a put or call.
+Valid values:  
+0 = Put
+1 = Call"
+StrikePrice="Tag: [ 202 ]      Field : [ StrikePrice ]      DataType: [ Price ] Definition: Strike Price for an Option."
+CoveredOrUncovered="Tag: [ 203 ]      Field : [ CoveredOrUncovered ]      DataType: [ int ] Definition: Used for options
+Valid values:  
+0 = Covered
+1 = Uncovered"
+CustomerOrFirm="Tag: [ 204 ]      Field : [ CustomerOrFirm ]      DataType: [ int ] Definition: Used for options when delivering the order to an execution system/exchange to specify if the order is for a customer or the firm placing the order itself.
+Valid values:  
+0 = Customer
+1 = Firm"
+MaturityDay="Tag: [ 205 ]      Field : [ MaturityDay ]      DataType: [ day-of-month ] Definition: Day of month used in conjunction with MaturityMonthYear to specify the maturity date for SecurityType=FUT or SecurityType=OPT.
+Valid values:  
+1-31"
+OptAttribute="Tag: [ 206 ]      Field : [ OptAttribute ]      DataType: [ char ] Definition: Can be used for SecurityType=OPT to identify a particular security.
+
+Valid values vary by SecurityExchange:  
+    For Exchange: MONEP (Paris)
+       L = Long (a.k.a. American)
+       S = Short (a.k.a. European)
+
+   For Exchanges: DTB (Frankfurt), HKSE (Hong Kong), and SOFFEX (Zurich)
+0-9 = single digit version number assigned by exchange following capital adjustments (0=current, 1=prior, 2=prior to 1, etc)."
+SecurityExchange="Tag: [ 207 ]      Field : [ SecurityExchange ]      DataType: [ Exchange ] Definition: Market used to help identify a security.
+Valid values:  
+See Appendix C"
+NotifyBrokerOfCredit="Tag: [ 208 ]      Field : [ NotifyBrokerOfCredit ]      DataType: [ Boolean ] Definition: Indicates whether or not details should be communicated to BrokerOfCredit (i.e. step-in broker).
+Valid values:  
+    Y = Details should be communicated
+N = Details should not be communicated"
+AllocHandlInst="Tag: [ 209 ]      Field : [ AllocHandlInst ]      DataType: [ int ] Definition: Indicates how the receiver (i.e. third party) of Allocation message should handle/process the account details.
+Valid values:  
+    1 = Match
+    2 = Forward
+3 = Forward and Match"
+MaxShow="Tag: [ 210 ]      Field : [ MaxShow ]      DataType: [ Qty ] Definition: Maximum number of shares within an order to be shown  to other customers (i.e. sent via an IOI).
+(Prior to FIX 4.2 this field was of type int)"
+PegDifference="Tag: [ 211 ]      Field : [ PegDifference ]      DataType: [ PriceOffset ] Definition: Amount (signed) added to the price of the peg  for a pegged order."
+XmlDataLen="Tag: [ 212 ]      Field : [ XmlDataLen ]      DataType: [ Length ] Definition: Length of the XmlData data block."
+XmlData="Tag: [ 213 ]      Field : [ XmlData ]      DataType: [ data ] Definition: Actual XML data stream (e.g. FIXML). See approriate XML reference (e.g. FIXML).  Note: may contain embedded SOH characters."
+SettlInstRefID="Tag: [ 214 ]      Field : [ SettlInstRefID ]      DataType: [ String ] Definition: Reference identifier for the SettlInstID with Cancel and Replace SettlInstTransType transaction types."
+NoRoutingIDs="Tag: [ 215 ]      Field : [ NoRoutingIDs ]      DataType: [ int ] Definition: Number of repeating groups of RoutingID and RoutingType values.
+
+See Appendix L – Pre-Trade Message Targeting/Routing"
+RoutingType="Tag: [ 216 ]      Field : [ RoutingType ]      DataType: [ int ] Definition: Indicates the type of RoutingID specified.
+Valid values:  
+    1 = Target Firm
+    2 = Target List
+    3 = Block Firm
+4 = Block List"
+RoutingID="Tag: [ 217 ]      Field : [ RoutingID ]      DataType: [ String ] Definition: Assigned value used to identify a specific routing destination."
+SpreadToBenchmark="Tag: [ 218 ]      Field : [ SpreadToBenchmark ]      DataType: [ PriceOffset ] Definition: For Fixed Income.  Basis points relative to a benchmark.  To be expressed as 'count of basis points' (vs. an absolute value).  E.g. High Grade Corporate Bonds may express price as basis points relative to benchmark (the Benchmark field).  Note: Basis points can be negative."
+Benchmark="Tag: [ 219 ]      Field : [ Benchmark ]      DataType: [ char ] Definition: For Fixed Income.  Identifies the benchmark (e.g. used in conjunction with the SpreadToBenchmark field).
+Valid values:
+1 = CURVE
+2 = 5-YR
+3 = OLD-5
+4 = 10-YR
+5 = OLD-10
+6 = 30-YR
+7 = OLD-30
+8 = 3-MO-LIBOR
+9 = 6-MO-LIBOR"
+MDReqID="Tag: [ 262 ]      Field : [ MDReqID ]      DataType: [ String  Unique identifier for Market Data Request"
+SubscriptionRequestType="Tag: [ 263 ]      Field : [ SubscriptionRequestType ]      DataType: [ char  Subscription Request Type
+Valid values:
+0 = Snapshot
+1 = Snapshot + Updates (Subscribe)
+2 = Disable previous Snapshot + Update Request (Unsubscribe)"
+MarketDepth="Tag: [ 264 ]      Field : [ MarketDepth ]      DataType: [ int  Depth of market for Book Snapshot
+Valid values:
+0 = Full Book
+1 = Top of Book
+N>1 = Report best N price tiers of data"
+MDUpdateType="Tag: [ 265 ]      Field : [ MDUpdateType ]      DataType: [ int  Specifies the type of Market Data update.
+Valid values:
+0 = Full Refresh
+1 = Incremental Refresh"
+AggregatedBook="Tag: [ 266 ]      Field : [ AggregatedBook ]      DataType: [ Boolean  Specifies whether or not book entries should be aggregated.
+Valid values:
+Y = one book entry per side per price
+N = Multiple entries per side per price allowed
+(Not specified) = broker option"
+NoMDEntryTypes="Tag: [ 267 ]      Field : [ NoMDEntryTypes ]      DataType: [ int  Number of MDEntryType fields requested."
+NoMDEntries="Tag: [ 268 ]      Field : [ NoMDEntries ]      DataType: [ int  Number of entries in Market Data message."
+MDEntryType="Tag: [ 269 ]      Field : [ MDEntryType ]      DataType: [ char  Type  Market Data entry.
+Valid values:
+0 = Bid
+1 = Offer
+2 = Trade
+3 = Index Value
+4 = Opening Price
+5 = Closing Price
+6 = Settlement Price
+7 = Trading Session High Price
+8 = Trading Session Low Price
+9 = Trading Session VWAP Price"
+MDEntryPx="Tag: [ 270 ]      Field : [ MDEntryPx ]      DataType: [ Price  Price of the Market Data Entry."
+MDEntrySize="Tag: [ 271 ]      Field : [ MDEntrySize ]      DataType: [ Qty  Number of shares represented by the Market Data Entry."
+MDEntryDate="Tag: [ 272 ]      Field : [ MDEntryDate ]      DataType: [ UTCDate  Date of Market Data Entry."
+MDEntryTime="Tag: [ 273 ]      Field : [ MDEntryTime ]      DataType: [ UTCTimeOnly  Time of Market Data Entry."
+TickDirection="Tag: [ 274 ]      Field : [ TickDirection ]      DataType: [ char  Direction of the 'tick'.
+Valid values:
+0 = Plus Tick
+1 = Zero-Plus Tick
+2 = Minus Tick
+3 = Zero-Minus Tick"
+MDMkt="Tag: [ 275 ]      Field : [ MDMkt ]      DataType: [ Exchange  Market posting quote / trade.
+Valid values:
+See Appendix C"
+QuoteCondition="Tag: [ 276 ]      Field : [ QuoteCondition ]      DataType: [ MultipleValueString  Space-delimited list of conditions describing a quote.
+Valid values:
+A = Open / Active
+B = Closed / Inactive
+C = Exchange Best
+D = Consolidated Best
+E = Locked
+F = Crossed
+G = Depth
+H = Fast Trading
+I = Non-Firm"
+TradeCondition="Tag: [ 277 ]      Field : [ TradeCondition ]      DataType: [ MultipleValueString  Space-delimited list of conditions describing a trade
+Valid values:
+A = Cash (only) Market
+B = Average Price Trade
+C = Cash Trade (same day clearing)
+D = Next Day (only) Market
+E = Opening / Reopening Trade Detail
+F = Intraday Trade Detail
+G = Rule 127 Trade (NYSE)
+H = Rule 155 Trade (Amex)
+I = Sold Last (late reporting)
+J = Next Day Trade (next day clearing)
+K = Opened (late report of opened trade)
+L = Seller
+M = Sold (out of sequence)
+N = Stopped Stock (guarantee of price but does not execute the order)"
+MDEntryID="Tag: [ 278 ]      Field : [ MDEntryID ]      DataType: [ String  Unique Market Data Entry identifier."
+MDUpdateAction="Tag: [ 279 ]      Field : [ MDUpdateAction ]      DataType: [ char  Type of Market Data update action.
+Valid values:
+0 = New
+1 = Change
+2 = Delete"
+MDEntryRefID="Tag: [ 280 ]      Field : [ MDEntryRefID ]      DataType: [ String  Refers to a previous MDEntryID."
+MDReqRejReason="Tag: [ 281 ]      Field : [ MDReqRejReason ]      DataType: [ char  Reason for the rejection of a Market Data request.
+Valid values:
+0 = Unknown symbol
+1 = Duplicate MDReqID
+2 = Insufficient Bandwidth
+3 = Insufficient Permissions
+4 = Unsupported SubscriptionRequestType
+5 = Unsupported MarketDepth
+6 = Unsupported MDUpdateType
+7 = Unsupported AggregatedBook
+8 = Unsupported MDEntryType"
+MDEntryOriginator="Tag: [ 282 ]      Field : [ MDEntryOriginator ]      DataType: [ String  Originator of a Market Data Entry"
+LocationID="Tag: [ 283 ]      Field : [ LocationID ]      DataType: [ String  Identification of a Market Maker’s location"
+DeskID="Tag: [ 284 ]      Field : [ DeskID ]      DataType: [ String  Identification of a Market Maker’s desk"
+DeleteReason="Tag: [ 285 ]      Field : [ DeleteReason ]      DataType: [ char  Reason for deletion.
+Valid values:
+0 = Cancelation / Trade Bust
+1 = Error"
+OpenCloseSettleFlag="Tag: [ 286 ]      Field : [ OpenCloseSettleFlag ]      DataType: [ char  Flag that identifies a price.
+Valid values:
+0 = Daily Open / Close / Settlement price
+1 = Session Open / Close / Settlement price
+2 = Delivery Settlement price"
+SellerDays="Tag: [ 287 ]      Field : [ SellerDays ]      DataType: [ int  Specifies the number of days that may elapse before delivery of the security"
+MDEntryBuyer="Tag: [ 288 ]      Field : [ MDEntryBuyer ]      DataType: [ String  Buying party in a trade"
+MDEntrySeller="Tag: [ 289 ]      Field : [ MDEntrySeller ]      DataType: [ String  Selling party in a trade"
+MDEntryPositionNo="Tag: [ 290 ]      Field : [ MDEntryPositionNo ]      DataType: [ int  Display position of a bid or offer, numbered from most competitive to least competitive, per market side, beginning with 1."
+FinancialStatus="Tag: [ 291 ]      Field : [ FinancialStatus ]      DataType: [ char  Identifies a firm’s financial status.
+Valid values:
+1 = Bankrupt"
+CorporateAction="Tag: [ 292 ]      Field : [ CorporateAction ]      DataType: [ char  Identifies the type of Corporate Action.
+Valid values:
+  A = Ex-Dividend
+  B = Ex-Distribution
+  C = Ex-Rights
+  D = New
+E = Ex-Interest"
+DefBidSize="Tag: [ 293 ]      Field : [ DefBidSize ]      DataType: [ Qty  Default Bid Size."
+DefOfferSize="Tag: [ 294 ]      Field : [ DefOfferSize ]      DataType: [ Qty  Default Offer Size."
+NoQuoteEntries="Tag: [ 295 ]      Field : [ NoQuoteEntries ]      DataType: [ int  The number of quote entries for a QuoteSet."
+NoQuoteSets="Tag: [ 296 ]      Field : [ NoQuoteSets ]      DataType: [ int  The number of sets of quotes in the message."
+QuoteAckStatus="Tag: [ 297 ]      Field : [ QuoteAckStatus ]      DataType: [ int  Identifies the status of the quote acknowledgement.
+Valid values:
+  0-Accepted
+  1-Canceled for Symbol(s)
+  2-Canceled  for Security Type(s)
+  3-Canceled for Underlying
+  4-Canceled All
+5-Rejected"
+QuoteCancelType="Tag: [ 298 ]      Field : [ QuoteCancelType ]      DataType: [ int  Identifies the type of  quote cancel.
+Valid Values:
+  1 – Cancel for Symbol(s)
+  2 – Cancel for Security Type(s)
+  3 – Cancel for Underlying Symbol
+4 – Cancel All Quotes"
+QuoteEntryID="Tag: [ 299 ]      Field : [ QuoteEntryID ]      DataType: [ String  Uniquely identifies the quote as part of a QuoteSet."
+QuoteRejectReason="Tag: [ 300 ]      Field : [ QuoteRejectReason ]      DataType: [ int  Reason Quote was rejected:
+Valid Values:
+  1 = Unknown symbol (Security)
+  2 = Exchange(Security) closed
+  3 = Quote Request exceeds limit
+  4 = Too late to enter
+  5 = Unknown Quote
+  6 = Duplicate Quote  7 = Invalid bid/ask spread
+  8 = Invalid price
+9 = Not authorized to quote security"
+QuoteResponseLevel="Tag: [ 301 ]      Field : [ QuoteResponseLevel ]      DataType: [ int  Level of Response requested from receiver of quote messages.
+Valid Values:
+  0 – No Acknowledgement (Default)
+  1 – Acknowledge only negative or erroneous quotes
+2 – Acknowledge each quote messages"
+QuoteSetID="Tag: [ 302 ]      Field : [ QuoteSetID ]      DataType: [ String  Unique id for the Quote Set."
+QuoteRequestType="Tag: [ 303 ]      Field : [ QuoteRequestType ]      DataType: [ int  Indicates the type of Quote Request being generated
+Valid values:
+  1-Manual
+2-Automatic"
+TotQuoteEntries="Tag: [ 304 ]      Field : [ TotQuoteEntries ]      DataType: [ int  Total number of quotes for the quote set across all messages. Should be the sum of all NoQuoteEntries in each message that has repeating quotes that are part of the same quote set."
+UnderlyingIDSource="Tag: [ 305 ]      Field : [ UnderlyingIDSource ]      DataType: [ String  Underlying security’s IDSource.
+Valid values:   see IDSource field"
+UnderlyingIssuer="Tag: [ 306 ]      Field : [ UnderlyingIssuer ]      DataType: [ String  Underlying security’s Issuer.
+See Issuer field for description"
+UnderlyingSecurityDesc="Tag: [ 307 ]      Field : [ UnderlyingSecurityDesc ]      DataType: [ String  Underlying security’s SecurityDesc.
+See SecurityDesc field for description"
+UnderlyingSecurityExchange="Tag: [ 308 ]      Field : [ UnderlyingSecurityExchange ]      DataType: [ Exchange  Underlying security’s SecurityExchange.  Can be used to identify the underlying security.
+Valid values:  see SecurityExchange"
+UnderlyingSecurityID="Tag: [ 309 ]      Field : [ UnderlyingSecurityID ]      DataType: [ String  Underlying security’s SecurityID.
+See SecurityID field for description"
+UnderlyingSecurityType="Tag: [ 310 ]      Field : [ UnderlyingSecurityType ]      DataType: [ String  Underlying security’s SecurityType.
+Valid values:   see SecurityType field"
+UnderlyingSymbol="Tag: [ 311 ]      Field : [ UnderlyingSymbol ]      DataType: [ String  Underlying security’s Symbol.
+See Symbol field for description"
+UnderlyingSymbolSfx="Tag: [ 312 ]      Field : [ UnderlyingSymbolSfx ]      DataType: [ String  Underlying security’s SymbolSfx.
+See SymbolSfx field for description"
+UnderlyingMaturityMonthYear="Tag: [ 313 ]      Field : [ UnderlyingMaturityMonthYear ]      DataType: [ month-year  Underlying security’s MaturityMonthYear. Required if UnderlyingMaturityDay is specified.
+See MaturityMonthYear field for description"
+UnderlyingMaturityDay="Tag: [ 314 ]      Field : [ UnderlyingMaturityDay ]      DataType: [ day-of-month  Underlying security’s MaturityDay.
+See MaturityDay field for description"
+UnderlyingPutOrCall="Tag: [ 315 ]      Field : [ UnderlyingPutOrCall ]      DataType: [ int  Underlying security’s PutOrCall.
+See PutOrCall field for description"
+UnderlyingStrikePrice="Tag: [ 316 ]      Field : [ UnderlyingStrikePrice ]      DataType: [ Price  Underlying security’s StrikePrice.
+See StrikePrice field for description"
+UnderlyingOptAttribute="Tag: [ 317 ]      Field : [ UnderlyingOptAttribute ]      DataType: [ char  Underlying security’s OptAttribute.
+See OptAttribute field for description"
+UnderlyingCurrency="Tag: [ 318 ]      Field : [ Underlying Currency ]      DataType: [ Currency  Underlying security’s Currency.
+See Currency field for description and valid values"
+RatioQty="Tag: [ 319 ]      Field : [ RatioQty ]      DataType: [ Quantity  Quantity of a particular leg in the security."
+SecurityReqID="Tag: [ 320 ]      Field : [ SecurityReqID ]      DataType: [ String  Unique ID of a Security Definition Request."
+SecurityRequestType="Tag: [ 321 ]      Field : [ SecurityRequestType ]      DataType: [ int  Type of Security Definition Request.
+Valid values:
+  0 = Request Security identity and specifications
+  1 = Request Security identity for the specifications provided (Name of the security is not supplied)
+  2 = Request List Security Types
+3 = Request List Securities (Can be qualified with Symbol, SecurityType, TradingSessionID, SecurityExchange is provided then only list Securities for the specific type)"
+SecurityResponseID="Tag: [ 322 ]      Field : [ SecurityResponseID ]      DataType: [ String  Unique ID of a Security Definition message."
+SecurityResponseType="Tag: [ 323 ]      Field : [ SecurityResponseType ]      DataType: [ int  Type of Security Definition message response.
+Valid values:
+  1 = Accept security proposal as is
+  2 = Accept security proposal with revisions as indicated in the message
+  3 = List of security types returned per request 
+  4 = List of securities returned per request
+  5 = Reject security proposal
+6 = Can not match selection criteria"
+SecurityStatusReqID="Tag: [ 324 ]      Field : [ SecurityStatusReqID ]      DataType: [ String  Unique ID of a Security Status Request message."
+UnsolicitedIndicator="Tag: [ 325 ]      Field : [ UnsolicitedIndicator ]      DataType: [ Boolean  Indicates whether or not message is being sent as a result of a subscription request or not.
+Valid values:
+   Y = Message is being sent unsolicited
+N = Message is being sent as a result of a prior request"
+SecurityTradingStatus="Tag: [ 326 ]      Field : [ SecurityTradingStatus ]      DataType: [ int  Identifies the trading status applicable to the transaction.
+Valid values:
+  1 = Opening Delay
+  2 = Trading Halt
+  3 = Resume
+  4 = No Open/No Resume
+  5 = Price Indication
+  6 = Trading Range Indication
+  7 = Market Imbalance Buy
+  8 = Market Imbalance Sell
+  9 = Market On Close Imbalance Buy
+  10 = Market On Close Imbalance Sell
+  11 = (not assigned)
+  12 = No Market Imbalance
+  13 = No Market On Close Imbalance
+  14 = ITS Pre-Opening
+  15 = New Price Indication
+  16 = Trade Dissemination Time
+  17 = Ready to trade (start of session)
+  18 = Not Available for trading (end of session)
+  19 = Not Traded on this Market
+20 = Unknown or Invalid"
+HaltReason="Tag: [ 327 ]      Field : [ HaltReason ]      DataType: [ char  Denotes the reason for the Opening Delay or Trading Halt.
+Valid values:
+  I = Order Imbalance
+  X = Equipment Changeover
+  P = News Pending
+  D = News Dissemination
+  E = Order Influx
+M = Additional Information"
+InViewOfCommon="Tag: [ 328 ]      Field : [ InViewOfCommon ]      DataType: [ Boolean  Indicates whether or not the halt was due to Common Stock trading being halted.
+Valid values:
+  Y = Halt was due to common stock being halted
+N = Halt was not related to a halt of the common stock"
+DueToRelated="Tag: [ 329 ]      Field : [ DueToRelated ]      DataType: [ Boolean  Indicates whether or not the halt was due to the Related Security being halted.
+Valid values:
+  Y = Halt was due to related security being halted
+N = Halt was not related to a halt of the related security"
+BuyVolume="Tag: [ 330 ]      Field : [ BuyVolume ]      DataType: [ Qty  Number of shares bought."
+SellVolume="Tag: [ 331 ]      Field : [ SellVolume ]      DataType: [ Qty  Number of shares sold."
+HighPx="Tag: [ 332 ]      Field : [ HighPx ]      DataType: [ Price  Represents an indication of the high end of the price range for a security prior to the open or reopen"
+LowPx="Tag: [ 333 ]      Field : [ LowPx ]      DataType: [ Price  Represents an indication of the low end of the price range for a security prior to the open or reopen"
+Adjustment="Tag: [ 334 ]      Field : [ Adjustment ]      DataType: [ int  Identifies the type of adjustment.
+Valid values:
+  1 = Cancel
+  2 = Error
+3 = Correction"
+TradSesReqID="Tag: [ 335 ]      Field : [ TradSesReqID ]      DataType: [ String  Unique ID of a Trading Session Status message."
+TradingSessionID="Tag: [ 336 ]      Field : [ TradingSessionID ]      DataType: [ String  Identifier for Trading Session
+Can be used to represent a specific market trading session (e.g. PRE-OPEN', 'CROSS_2', 'AFTER-HOURS', 'TOSTNET1', 'TOSTNET2', etc). 
+Values should be bi-laterally agreed to between counterparties."
+ContraTrader="Tag: [ 337 ]      Field : [ ContraTrader ]      DataType: [ String  Identifies the trader (e.g. 'badge number') of the ContraBroker."
+TradSesMethod="Tag: [ 338 ]      Field : [ TradSesMethod ]      DataType: [ int  Method of trading
+Valid values:
+  1 = Electronic
+  2 = Open Outcry
+3 = Two Party"
+TradSesMode="Tag: [ 339 ]      Field : [ TradSesMode ]      DataType: [ int  Trading Session Mode
+Valid values:
+  1 = Testing
+  2 = Simulated
+3 = Production"
+TradSesStatus="Tag: [ 340 ]      Field : [ TradSesStatus ]      DataType: [ int  State of the trading session.
+ Valid values:
+  1 = Halted
+  2 = Open
+  3 = Closed
+  4 = Pre-Open
+5 = Pre-Close"
+TradSesStartTime="Tag: [ 341 ]      Field : [ TradSesStartTime ]      DataType: [ UTCTimestamp  Starting time of the trading session"
+TradSesOpenTime="Tag: [ 342 ]      Field : [ TradSesOpenTime ]      DataType: [ UTCTimestamp  Time of the opening of the trading session"
+TradSesPreCloseTime="Tag: [ 343 ]      Field : [ TradSesPreCloseTime ]      DataType: [ UTCTimestamp  Time of the pre-closed of the trading session"
+TradSesCloseTime="Tag: [ 344 ]      Field : [ TradSesCloseTime ]      DataType: [ UTCTimestamp  Closing time of the trading session"
+TradSesEndTime="Tag: [ 345 ]      Field : [ TradSesEndTime ]      DataType: [ UTCTimestamp  End time of the trading session"
+NumberOfOrders="Tag: [ 346 ]      Field : [ NumberOfOrders ]      DataType: [ int  Number of orders in the market."
+MessageEncoding="Tag: [ 347 ]      Field : [ MessageEncoding ]      DataType: [ String  Type of message encoding (non-ASCII (non-English) characters) used in a message’s Encoded fields.
+Valid values:
+  ISO-2022-JP   (for using JIS)
+  EUC-JP           (for using EUC)
+  Shift_JIS         (for using SJIS)
+UTF-8             (for using Unicode)"
+EncodedIssuerLen="Tag: [ 348 ]      Field : [ EncodedIssuerLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedIssuer field."
+EncodedIssuer="Tag: [ 349 ]      Field : [ EncodedIssuer ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Issuer field in the encoded format specified via the MessageEncoding field.  If used, the ASCII (English) representation should also be specified in the Issuer field."
+EncodedSecurityDescLen="Tag: [ 350 ]      Field : [ EncodedSecurityDescLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedSecurityDesc field."
+EncodedSecurityDesc="Tag: [ 351 ]      Field : [ EncodedSecurityDesc ]      DataType: [ data  Encoded (non-ASCII characters) representation of the SecurityDesc field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the SecurityDesc field."
+EncodedListExecInstLen="Tag: [ 352 ]      Field : [ EncodedListExecInstLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedListExecInst field."
+EncodedListExecInst="Tag: [ 353 ]      Field : [ EncodedListExecInst ]      DataType: [ data  Encoded (non-ASCII characters) representation of the ListExecInst field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the ListExecInst field."
+EncodedTextLen="Tag: [ 354 ]      Field : [ EncodedTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedText field."
+EncodedText="Tag: [ 355 ]      Field : [ EncodedText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Text field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Text field."
+EncodedSubjectLen="Tag: [ 356 ]      Field : [ EncodedSubjectLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedSubject field."
+EncodedSubject="Tag: [ 357 ]      Field : [ EncodedSubject ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Subject field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Subject field."
+EncodedHeadlineLen="Tag: [ 358 ]      Field : [ EncodedHeadlineLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedHeadline field."
+EncodedHeadline="Tag: [ 359 ]      Field : [ EncodedHeadline ]      DataType: [ data  Encoded (non-ASCII characters) representation of the Headline field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Headline field."
+EncodedAllocTextLen="Tag: [ 360 ]      Field : [ EncodedAllocTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedAllocText field."
+EncodedAllocText="Tag: [ 361 ]      Field : [ EncodedAllocText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the AllocText field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the AllocText field."
+EncodedUnderlyingIssuerLen="Tag: [ 362 ]      Field : [ EncodedUnderlyingIssuerLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedUnderlyingIssuer field."
+EncodedUnderlyingIssuer="Tag: [ 363 ]      Field : [ EncodedUnderlyingIssuer ]      DataType: [ data  Encoded (non-ASCII characters) representation of the UnderlyingIssuer field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the UnderlyingIssuer field."
+EncodedUnderlyingSecurityDescLen="Tag: [ 364 ]      Field : [ EncodedUnderlyingSecurityDescLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedUnderlyingSecurityDesc field."
+EncodedUnderlyingSecurityDesc="Tag: [ 365 ]      Field : [ EncodedUnderlyingSecurityDesc ]      DataType: [ data  Encoded (non-ASCII characters) representation of the UnderlyingSecurityDesc field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the UnderlyingSecurityeDesc  field."
+AllocPrice="Tag: [ 366 ]      Field : [ AllocPrice ]      DataType: [ Price  Executed price for an AllocAccount entry used when using executed price vs. average price allocations (e.g. Japan)."
+QuoteSetValidUntilTime="Tag: [ 367 ]      Field : [ QuoteSetValidUntilTime ]      DataType: [ UTCTimestamp  Indicates expiration time of this particular QuoteSet (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+QuoteEntryRejectReason="Tag: [ 368 ]      Field : [ QuoteEntryRejectReason ]      DataType: [ int  Reason Quote Entry was rejected:
+Valid values:
+  1 = Unknown symbol (Security)
+  2 = Exchange(Security) closed
+  3 = Quote exceeds limit
+  4 = Too late to enter
+  5 = Unknown Quote
+  6 = Duplicate Quote
+  7 = Invalid bid/ask spread
+  8 = Invalid price
+9 = Not authorized to quote security"
+LastMsgSeqNumProcessed="Tag: [ 369 ]      Field : [ LastMsgSeqNumProcessed ]      DataType: [ int  The last MsgSeqNum value received and processed.  Can be specified on every message sent.  Useful for detecting a backlog with a counterparty."
+OnBehalfOfSendingTime="Tag: [ 370 ]      Field : [ OnBehalfOfSendingTime ]      DataType: [ UTCTimestamp  Used when a message is sent via a hub or service bureau.  If A sends to Q (the hub) who then sends to B via a separate FIX session, then when Q sends to B the value of this field should represent the SendingTime on the message A sent to Q.   (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+RefTagID="Tag: [ 371 ]      Field : [ RefTagID ]      DataType: [ int  The tag number of the FIX field being referenced."
+RefMsgType="Tag: [ 372 ]      Field : [ RefMsgType ]      DataType: [ String  The MsgType of the FIX message being referenced."
+SessionRejectReason="Tag: [ 373 ]      Field : [ SessionRejectReason ]      DataType: [ int  Code to identify reason for a session-level Reject message.
+Valid values:
+0 = Invalid tag number
+1 = Required tag missing
+2 = Tag not defined for this message type
+3 = Undefined Tag
+4 = Tag specified without a value
+5 = Value is incorrect (out of range) for this tag
+6 = Incorrect data format for value
+7 = Decryption problem
+8 = Signature problem
+9 = CompID problem
+10 = SendingTime accuracy problem
+11 = Invalid MsgType"
+BidRequestTransType="Tag: [ 374 ]      Field : [ BidRequestTransType ]      DataType: [ char  Identifies the Bid Request message type.
+Valid values:
+N = New
+C = Cancel"
+ContraBroker="Tag: [ 375 ]      Field : [ ContraBroker ]      DataType: [ String  Identifies contra broker.  Standard NASD market-maker mnemonic is preferred."
+ComplianceID="Tag: [ 376 ]      Field : [ ComplianceID ]      DataType: [ String  ID used to represent this transaction for compliance purposes (e.g. OATS reporting)."
+SolicitedFlag="Tag: [ 377 ]      Field : [ SolicitedFlag ]      DataType: [ Boolean  Indicates whether or not the order was solicited.
+Valid values:
+Y = Was solcitied
+N = Was not solicited"
+ExecRestatementReason="Tag: [ 378 ]      Field : [ ExecRestatementReason ]      DataType: [ int  Code to identify reason for an ExecutionRpt message sent with ExecType=Restated or used when communicating an unsolicited cancel.
+ Valid values:
+0 = GT Corporate action
+1 = GT renewal / restatement (no corporate action)
+2 = Verbal change
+3 = Repricing of order
+4 = Broker option
+5 = Partial decline of OrderQty (e.g. exchange-initiated partial cancel)"
+BusinessRejectRefID="Tag: [ 379 ]      Field : [ BusinessRejectRefID ]      DataType: [ String  The value of the business-level ID field on the message being referenced."
+BusinessRejectReason="Tag: [ 380 ]      Field : [ BusinessRejectReason ]      DataType: [ int  Code to identify reason for a Business Message Reject message.
+Valid values:
+0 = Other
+1 = Unkown ID
+2 = Unknown Security
+3 = Unsupported Message Type
+4 = Application not available
+5 = Conditionally Required Field Missing"
+GrossTradeAmt="Tag: [ 381 ]      Field : [ GrossTradeAmt ]      DataType: [ Amt  Total amount traded (e.g. CumQty * AvgPx) expressed in units of currency."
+NoContraBrokers="Tag: [ 382 ]      Field : [ NoContraBrokers ]      DataType: [ int  The number of ContraBroker entries."
+MaxMessageSize="Tag: [ 383 ]      Field : [ MaxMessageSize ]      DataType: [ int  Maximum number of bytes supported for a single message."
+NoMsgTypes="Tag: [ 384 ]      Field : [ NoMsgTypes ]      DataType: [ int  Number of MsgTypes in repeating group."
+MsgDirection="Tag: [ 385 ]      Field : [ MsgDirection ]      DataType: [ char  Specifies the direction of the messsage.
+Valid values:
+S = Send
+R = Receive"
+NoTradingSessions="Tag: [ 386 ]      Field : [ NoTradingSessions ]      DataType: [ int  Number of TradingSessionIDs in repeating group."
+TotalVolumeTraded="Tag: [ 387 ]      Field : [ TotalVolumeTraded ]      DataType: [ Qty  Total volume (quantity) traded."
+DiscretionInst="Tag: [ 388 ]      Field : [ DiscretionInst ]      DataType: [ char  Code to identify the price a DiscretionOffset is related to and should be mathematically added to.
+Valid values:
+0 = Related to displayed price
+1 = Related to market price
+2 = Related to primary price
+3 = Related to local primary price
+4 = Related to midpoint price
+5 = Related to last trade price"
+DiscretionOffset="Tag: [ 389 ]      Field : [ DiscretionOffset ]      DataType: [ PriceOffset  Amount (signed) added to the related to price specified via DiscretionInst."
+BidID="Tag: [ 390 ]      Field : [ BidID ]      DataType: [ String  Unique identifier for Bid Response as assigned by broker.  Uniqueness must be guaranteed within a single trading day."
+ClientBidID="Tag: [ 391 ]      Field : [ ClientBidID ]      DataType: [ String  Unique identifier for a Bid Request as assigned by institution.  Uniqueness must be guaranteed within a single trading day."
+ListName="Tag: [ 392 ]      Field : [ ListName ]      DataType: [ String  Descriptive name for list order."
+TotalNumSecurities="Tag: [ 393 ]      Field : [ TotalNumSecurities ]      DataType: [ int  Total number of securities."
+BidType="Tag: [ 394 ]      Field : [ BidType ]      DataType: [ int  Code to identify the type of Bid Request.
+Valid values:
+1 – Non Disclosed Style (e.g. US/European)
+2 – Disclosed  Style (e.g. Japanese)
+3 – No Bidding Process"
+NumTickets="Tag: [ 395 ]      Field : [ NumTickets ]      DataType: [ int  Total number of tickets."
+SideValue1="Tag: [ 396 ]      Field : [ SideValue1 ]      DataType: [ Amt  Amounts in currency"
+SideValue2="Tag: [ 397 ]      Field : [ SideValue2 ]      DataType: [ Amt  Amounts in currency"
+NoBidDescriptors="Tag: [ 398 ]      Field : [ NoBidDescriptors ]      DataType: [ int  Number of BidDescriptor entries."
+BidDescriptorType="Tag: [ 399 ]      Field : [ BidDescriptorType ]      DataType: [ int  Code to identify the type of BidDescriptor.
+Valid values:
+1 – Sector
+2 – Country
+3 – Index"
+BidDescriptor="Tag: [ 400 ]      Field : [ BidDescriptor ]      DataType: [ String  BidDescriptor value.  Usage depends upon BidDescriptorType.
+If BidDescriptorType =1 
+Industrials etc – Free text
+If BidDescriptorType =2
+'FR' etc – ISO Country Codes
+If BidDescriptorType =3
+FT100, FT250, STOX – Free text"
+SideValueInd="Tag: [ 401 ]      Field : [ SideValueInd ]      DataType: [ int  Code to identify which 'SideValue' the value refers to.  SideValue1 and SideValue2 are used as opposed to Buy or Sell so that the basket can be quoted either way as Buy or Sell.
+Valid values:
+1 – SideValue1
+2 – SideValue 2"
+LiquidityPctLow="Tag: [ 402 ]      Field : [ LiquidityPctLow ]      DataType: [ float  Liquidity indicator or lower limit if TotalNumSecurities > 1.  Represented as a percentage."
+LiquidityPctHigh="Tag: [ 403 ]      Field : [ LiquidityPctHigh ]      DataType: [ float  Upper liquidity indicator if TotalNumSecurities > 1.  Represented as a percentage."
+LiquidityValue="Tag: [ 404 ]      Field : [ LiquidityValue ]      DataType: [ Amt  Value between LiquidityPctLow and LiquidityPctHigh in Currency"
+EFPTrackingError="Tag: [ 405 ]      Field : [ EFPTrackingError ]      DataType: [ float  Eg Used in EFP trades 12% (EFP – Exchange for Physical ).  Represented as a percentage."
+FairValue="Tag: [ 406 ]      Field : [ FairValue ]      DataType: [ Amt  Used in EFP trades"
+OutsideIndexPct="Tag: [ 407 ]      Field : [ OutsideIndexPct ]      DataType: [ float  Used in EFP trades.  Represented as a percentage."
+ValueOfFutures="Tag: [ 408 ]      Field : [ ValueOfFutures ]      DataType: [ Amt  Used in EFP trades"
+LiquidityIndType="Tag: [ 409 ]      Field : [ LiquidityIndType ]      DataType: [ int  Code to identify the type of liquidity indicator.
+Valid values:
+1 – 5day moving average
+2 – 20 day moving average
+3 – Normal Market Size 
+4 – Other"
+WtAverageLiquidity="Tag: [ 410 ]      Field : [ WtAverageLiquidity ]      DataType: [ float  Overall weighted average liquidity expressed as a % of average daily volume.  Represented as a percentage."
+ExchangeForPhysical="Tag: [ 411 ]      Field : [ ExchangeForPhysical ]      DataType: [ Boolean  Indicates whether or not to exchange for phsyical.
+Valid values:
+   Y = True
+N = False"
+OutMainCntryUIndex="Tag: [ 412 ]      Field : [ OutMainCntryUIndex ]      DataType: [ Amt  Value of stocks in Currency"
+CrossPercent="Tag: [ 413 ]      Field : [ CrossPercent ]      DataType: [ float  Percentage of program that crosses in Currency.  Represented as a percentage."
+ProgRptReqs="Tag: [ 414 ]      Field : [ ProgRptReqs ]      DataType: [ int  Code to identify the desired frequency of progress reports.
+Valid values:
+1 – BuySide explicitly requests status using StatusRequest (Default) The sell-side firm can however, send a DONE status List Status Response in an unsolicited fashion
+2 – SellSide periodically sends status using ListStatus. Period optionally specified in ProgressPeriod
+3 – Real-time execution reports (to be discouraged)"
+ProgPeriodInterval="Tag: [ 415 ]      Field : [ ProgPeriodInterval ]      DataType: [ int  Time in minutes between each ListStatus report sent by SellSide. Zero means don’t send status."
+IncTaxInd="Tag: [ 416 ]      Field : [ IncTaxInd ]      DataType: [ int  Code to represent whether value is net (inclusive of tax) or gross.
+Valid values:
+1 - Net
+2 - Gross"
+NumBidders="Tag: [ 417 ]      Field : [ NumBidders ]      DataType: [ int  Indicates the total number of bidders on the list"
+TradeType="Tag: [ 418 ]      Field : [ TradeType ]      DataType: [ char  Code to represent the type of trade.
+Valid values:
+R: Risk Trade
+G: VWAP Guarantee
+A: Agency
+J: Guaranteed Close"
+BasisPxType="Tag: [ 419 ]      Field : [ BasisPxType ]      DataType: [ char  Code to represent the basis price type.
+Valid values:
+2: Closing Price at morning session
+3: Closing Price
+4: Current price 
+5: SQ
+6: VWAP through a day
+7: VWAP through a morning session
+8: VWAP through an afternoon session
+9: VWAP through a day except YORI
+A: VWAP through a morning session except YORI
+B: VWAP through an afternoon session except YORI
+C: Strike
+D: Open
+Z: Others"
+NoBidComponents="Tag: [ 420 ]      Field : [ NoBidComponents ]      DataType: [ int  Indicates the number of list entries."
+Country="Tag: [ 421 ]      Field : [ Country ]      DataType: [ String  ISO Country Code in field"
+TotNoStrikes="Tag: [ 422 ]      Field : [ TotNoStrikes ]      DataType: [ int  Total number of strike price entries across all messages. Should be the sum of all NoStrikes in each message that has repeating strike price entries related to the same ListID.  Used to support fragmentation."
+PriceType="Tag: [ 423 ]      Field : [ PriceType ]      DataType: [ int  Code to represent the price type.
+Valid values:
+1 - Percentage
+2 - per share (e.g. cents per share)
+3 - Fixed Amount (absolute value)"
+DayOrderQty="Tag: [ 424 ]      Field : [ DayOrderQty ]      DataType: [ Qty  For GT orders, the OrderQty less all shares (adjusted for stock splits) that traded on previous days.  DayOrderQty = OrderQty – (CumQty - DayCumQty)"
+DayCumQty="Tag: [ 425 ]      Field : [ DayCumQty ]      DataType: [ Qty  The number of shares on a GT order that have traded today."
+DayAvgPx="Tag: [ 426 ]      Field : [ DayAvgPx ]      DataType: [ Price  The average price of shares on a GT order that have traded today."
+GTBookingInst="Tag: [ 427 ]      Field : [ GTBookingInst ]      DataType: [ int  Code to identify whether to book out executions on a part-filled GT order on the day of execution or to accumulate.
+Valid values:
+0 = book out all trades on day of execution
+1 = accumulate executions until order is filled or expires 
+2 = accumulate until verbally notified otherwise"
+NoStrikes="Tag: [ 428 ]      Field : [ NoStrikes ]      DataType: [ int  Number of list strike price entries."
+ListStatusType="Tag: [ 429 ]      Field : [ ListStatusType ]      DataType: [ int  Code to represent the price type.
+Valid values:
+1 – Ack
+2 – Response
+3 – Timed
+4 – ExecStarted
+5 – AllDone
+6 – Alert"
+NetGrossInd="Tag: [ 430 ]      Field : [ NetGrossInd ]      DataType: [ int  Code to represent whether value is net (inclusive of tax) or gross.
+Valid values:
+1 - Net
+2 - Gross"
+ListOrderStatus="Tag: [ 431 ]      Field : [ ListOrderStatus ]      DataType: [ int  Code to represent the status of a list order.
+Valid values:
+1 – InBiddingProcess
+2 – ReceivedForExecution
+3 – Executing
+4 – Canceling
+5 – Alert
+6 – All Done
+7 – Reject"
+ExpireDate="Tag: [ 432 ]      Field : [ ExpireDate ]      DataType: [ LocalMktDate  Date of order expiration (last day the order can trade), always expressed in terms of the local market date.  The time at which the order expires is determined by the local market’s business practices"
+ListExecInstType="Tag: [ 433 ]      Field : [ ListExecInstType ]      DataType: [ char  Identifies the type of ListExecInst.
+ Valid values:
+1 - Immediate
+2 - Wait for Execute Instruction (e.g. a List Execute message or phone call before proceeding with execution of the list)"
+CxlRejResponseTo="Tag: [ 434 ]      Field : [ CxlRejResponseTo ]      DataType: [ char  Identifies the type of request that a Cancel Reject is in response to.
+ Valid values:
+1 - Order Cancel Request
+2 - Order Cancel/Replace Request"
+UnderlyingCouponRate="Tag: [ 435 ]      Field : [ UnderlyingCouponRate ]      DataType: [ float  Underlying security’s CouponRate.
+See CouponRate field for description"
+UnderlyingContractMultiplier="Tag: [ 436 ]      Field : [ UnderlyingContractMultiplier ]      DataType: [ float  Underlying security’s ContractMultiplier.
+See ContractMultiplier field for description"
+ContraTradeQty="Tag: [ 437 ]      Field : [ ContraTradeQty ]      DataType: [ Qty  Quantity traded with the ContraBroker."
+ContraTradeTime="Tag: [ 438 ]      Field : [ ContraTradeTime ]      DataType: [ UTCTimestamp  Identifes the time of the trade with the ContraBroker.   (always expressed in UTC (Universal Time Coordinated, also known as GMT)"
+ClearingFirm="Tag: [ 439 ]      Field : [ ClearingFirm ]      DataType: [ String  Firm that will clear the trade.  Used if different from the executing firm."
+ClearingAccount="Tag: [ 440 ]      Field : [ ClearingAccount ]      DataType: [ String  Supplemental accounting information forwared to clearing house/firm."
+LiquidityNumSecurities="Tag: [ 441 ]      Field : [ LiquidityNumSecurities ]      DataType: [ int  Number of Securites between LiquidityPctLow and LiquidityPctHigh in Currency."
+MultiLegReportingType="Tag: [ 442 ]      Field : [ MultiLegReportingType ]      DataType: [ char  Used to indicate what an Execution Report represents (e.g. used with multi-leg securiteis, such as option strategies, spreads, etc.).
+Valid Values:
+1 - Single Security (default if not specified)
+2 - Individual leg of a multi-leg security
+3 - Multi-leg security"
+StrikeTime="Tag: [ 443 ]      Field : [ StrikeTime ]      DataType: [ UTCTimestamp  The time at which current market prices are used to determine the value of a basket."
+ListStatusText="Tag: [ 444 ]      Field : [ ListStatusText ]      DataType: [ String  Free format text string related to List Status."
+EncodedListStatusTextLen="Tag: [ 445 ]      Field : [ EncodedListStatusTextLen ]      DataType: [ Length  Byte length of encoded (non-ASCII characters) EncodedListStatusText field."
+EncodedListStatusText="Tag: [ 446 ]      Field : [ EncodedListStatusText ]      DataType: [ data  Encoded (non-ASCII characters) representation of the ListStatusText field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the ListStatusText field."
+
+
+
+
+
+
+if [[ "${!Translate}" ]]
+then
+   echo "${!Translate}"
+else
+   echo "No Match Found for ($1)! Search is Case Sensative
+   Usage: FIX42 Followed by Tag or FieldName IE: ( FIX42 55 or FIX42 Symbol)"
+fi
