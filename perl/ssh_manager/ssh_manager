@@ -1,0 +1,240 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Term::ANSIColor;
+
+my $workingDIR = "$ENV{HOME}/.ssh_store";
+
+if (!(-d $workingDIR)){
+	system("mkdir $workingDIR");
+}
+
+##### Build serverlist holder #####
+my @serverList;
+my $serverCount = 0;
+my $maxLength = 0;
+if (-e "$workingDIR/serverlist"){
+	open(my $servers, "$workingDIR/serverlist") or die "No servers found";	
+	while (my $row = <$servers>){
+		my @tA = split(/GTGT/,$row);
+		if ($maxLength < length($tA[1])) {
+			$maxLength = length($tA[1]);
+		}
+		push(@serverList, $row);	
+		$serverCount++;		
+	}
+
+	close $servers;
+}
+
+####################################
+
+
+my $argLength = @ARGV;
+
+
+my @colorArray = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white');
+
+
+
+if ($argLength == 0){
+	my $num = 0;
+	print color 'bold white';
+	print "-----------------SSH Servers----------------\n";
+	
+	foreach (@serverList){
+		my @tA = split(/GTGT/,$_);
+		chomp($tA[0],$tA[1],$tA[2]);		
+		my $padding = $maxLength - length($tA[1]); #To make it pretty
+		my $pad = "    ";
+		for (my $i=0;$i<=$padding;$i++){
+			$pad .= " ";
+		}
+		
+		print color "bold $tA[2]";
+		print "(";
+		print color 'bold white';
+		print "$num";
+		print color "bold $tA[2]";
+		print ") ";
+		for (my $i=0; length($num)>$i; $i++){ chop($pad); }
+		chop($pad) if $num < 10;
+		print color "bold $tA[2]";
+		print " $tA[1]$pad " if $num < 10;
+		print "$tA[1]$pad " if $num >= 10;
+		print color "bold $tA[2]";
+		print "\[";
+		print color 'bold white';
+		print "$tA[0]";
+		print color "bold $tA[2]";
+		print "\]\n";
+		$num++;
+	}
+	print color 'bold white';
+	print "--------------------------------------------\n";	
+	print color 'bold blue';
+	print "Please Enter your selection number:\n";
+	print color 'reset';
+	my $selection = <STDIN>;
+	chomp $selection;
+	if (!($selection =~ /\D/)){
+		if ($serverList[$selection]){
+			my @serverInfo = split(/GTGT/ ,$serverList[$selection]);
+			chomp($serverInfo[0],$serverInfo[1],$serverInfo[2]);
+			print color 'bold white';
+			print "Connecting to ";
+			print color "bold $serverInfo[2]";
+			print "$serverInfo[1]";
+			print color 'bold white';
+			print "........\n\n";
+			print color 'reset';
+			open(my $lastServer, ">$workingDIR/lastServer");
+			print $lastServer $serverList[$selection];
+			system("ssh -X $serverInfo[0]");	
+		} else {
+			print color 'bold red';
+			print "Invalid entry\n";
+			print color 'reset';
+		}
+	} else {
+			print color 'bold red';
+			print "Invalid entry\n";
+			print color 'reset';
+		}
+	}
+
+
+if ($ARGV[0]) {
+	if ($ARGV[0] eq "--add"){
+		open(my $servers, ">>$workingDIR/serverlist") or die "No servers found";
+		my $done = 0;
+		while ($done == 0){
+			print "Enter new server ip or hostname\n";	
+			my $newServer = lc(<STDIN>);
+			chomp($newServer);
+			print "Enter a server alias\n";	
+			my $alias = <STDIN>;
+			chomp($alias);
+			print "Enter a server color ( black, red, green, yellow, blue, magenta, cyan, default: white )\n";	
+			my $color = lc(<STDIN>);
+			chomp($color);
+
+			if (!(grep $_ eq $color,@colorArray)){
+				print "Not valid color, using white\n";
+				$color = "white";
+			}
+			
+			if (length($alias) > 0){
+				print $servers "$newServer" . "GTGT" . "$alias" . "GTGT" . "$color\n"; 
+			} else {
+				print $servers "$newServer" . "GTGT" . "$newServer" . "GTGT" . "$color\n";
+			}
+			
+			print "Finished? (y/n)\n";
+			my $finished = lc(<STDIN>);
+			chomp($finished);
+			if ($finished eq "y"){
+				$done = 1;
+			}
+			
+		}
+		close $servers;
+		exit(1);
+	}
+	
+	if ($ARGV[0] eq "--del"){
+			my $num = 0;
+	print color 'bold white';
+	print "------------SSH Servers-----------\n";
+	
+	foreach (@serverList){
+		my @tA = split(/GTGT/,$_);
+		chomp($tA[0],$tA[1],$tA[2]);		
+		my $padding = $maxLength - length($tA[1]); #To make it pretty
+		my $pad = "";
+		for (my $i=0;$i<=$padding;$i++){
+			$pad .= " ";
+		}
+		
+		print color 'bold green';
+		print "(";
+		print color 'bold white';
+		print "$num";
+		print color 'bold green';
+		print ") ";
+		print color "bold $tA[2]";
+		#print length($num) . "\n";		
+		print "$tA[1]$pad ";
+		print color 'bold green';
+		print "\<$tA[0]\>\n";
+		$num++;
+	}
+	print color 'bold white';
+	print "----------------------------------\n";	
+	print color 'bold red';
+	print "Please Enter the server you want to remove:\n";
+	print color 'reset';
+	my $selection = <STDIN>;
+	chomp $selection;
+	if (!($selection =~ /\D/)){
+		if ($serverList[$selection]){
+			my @serverInfo = split(/GTGT/ ,$serverList[$selection]);
+			chomp($serverInfo[0],$serverInfo[1],$serverInfo[2]);
+			print color 'bold white';
+			print "Removed ";
+			print color "bold $serverInfo[2]";
+			print "$serverInfo[1]\n";
+			print color 'reset';
+			
+			my $del = $selection+1;
+			
+			system("sed '".$del."'d $workingDIR/serverlist > $workingDIR/tempsvlist");
+			system("mv $workingDIR/tempsvlist $workingDIR/serverlist");
+		} else { 
+			print color 'bold red';
+			print "Invalid entry\n";
+			print color 'reset';		
+		}	
+	} else {
+		print color 'bold red';
+		print "Invalid entry\n";
+		print color 'reset';				
+	}	
+	
+		exit(1);
+	}
+	
+	
+	if ($ARGV[0] eq "-rc"){
+		
+		open(my $lastServer, "$workingDIR/lastServer");
+		my $last = <$lastServer>;
+		chomp($last);
+		
+		my @serverInfo = split(/GTGT/ ,$last);
+		chomp($serverInfo[0],$serverInfo[1],$serverInfo[2]);
+		print color 'bold white';
+		print "Reconnecting to ";
+		print color "bold $serverInfo[2]";
+		print "$serverInfo[1]";
+		print color 'bold white';
+		print "........\n\n";
+		print color 'reset';
+		system("ssh $serverInfo[0]");
+		
+		
+		
+		exit(1);
+	}
+	
+	
+	print "SSH Server Organizer v0.5\n";
+	print "Created By George Tsafas\n";
+	print "Switch           Description\n";
+	print "--add            Add new server\n";
+	print "--del            Remove server\n";
+	print "-rc              Reconnect to last server\n";
+	
+	
+}
