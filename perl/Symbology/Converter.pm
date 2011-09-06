@@ -12,8 +12,8 @@ use Convention::NASDAQ::Integrated;
 sub new {
     my ($class, $info) = @_;
    
-    my $self = { 
-    };
+    my $self = {};
+
     bless ($self, $class);
     return $self;
 }
@@ -32,13 +32,13 @@ sub what {
     $returnObj->{Fidessa} = Symbology::Convention::Fidessa->check($symbol);
     delete $returnObj->{Fidessa} unless defined $returnObj->{Fidessa};
 
-    $returnObj->{NASDAQ_Integrated} = Symbology::Convention::NASDAQ::Integrated->check($symbol);
-    delete $returnObj->{NASDAQ_Integrated} unless defined $returnObj->{NASDAQ_Integrated};
+    $returnObj->{Integrated} = Symbology::Convention::NASDAQ::Integrated->check($symbol);
+    delete $returnObj->{Integrated} unless defined $returnObj->{Integrated};
 
     return $returnObj;
 }
 
-sub convert {
+sub try_convert {
     my ($self, $symbol, $target) = @_;
 
     my $data = what($self,$symbol);
@@ -47,11 +47,19 @@ sub convert {
         next unless defined $data->{$_};
 
         if ($target eq 'CMS'){
-            return Symbology::Convention::CMS->giveme($data->{$_});
+            my $conversion = Symbology::Convention::CMS->giveme($data->{$_});
         }
 
         if ($target eq 'CQS'){
-            return Symbology::Convention::CQS->giveme($data->{$_});
+            my $conversion = Symbology::Convention::CQS->giveme($data->{$_});
+        }
+
+        if ($target eq 'Fidessa'){
+            my $conversion = Symbology::Convention::Fidessa->giveme($data->{$_});
+        }
+
+        if ($target eq 'Integrated'){
+            my $conversion = Symbology::Convention::NASDAQ::Integrated->giveme($data->{$_});
         }
     }
 
