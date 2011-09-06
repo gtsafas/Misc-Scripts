@@ -51,6 +51,8 @@ sub conversion {
 sub check {
     my ($self, $symbol) = @_;
 
+    return unless defined $symbol;
+
     #Nothing to be done
     return undef if $symbol =~ m/^[A-Z]+$/;
 

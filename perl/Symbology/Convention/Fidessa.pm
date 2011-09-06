@@ -5,6 +5,8 @@ use warnings;
 
 sub check {
     my ($self, $symbol) = @_;
+    
+    return unless defined $symbol;
 
     return 'Preferred' 
         if $symbol =~ m/^[A-Z]+-$/;

@@ -51,6 +51,8 @@ sub conversion {
 sub check {
     my ($self, $symbol) = @_;
 
+    return unless defined $symbol;
+
     if ($symbol =~ m/(^[A-Z]+)(p)$/){
         return {
             Type => 'Preferred',
