@@ -6,13 +6,25 @@ use warnings;
 use Convention::CQS;
 use Convention::CMS;
 use Convention::Fidessa;
-use Convention::NASDAQ::Integrated;
+
+# use Convention::NASDAQ::Integrated;
 
 
 sub new {
     my ($class, $info) = @_;
    
-    my $self = {};
+    my $self = {
+        Check => {
+            CQS     => sub { my $x = shift; return Symbology::Convention::CQS->check($x); },
+            CMS     => sub { my $x = shift; return Symbology::Convention::CMS->check($x); },
+            FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->check($x); }
+        }, 
+        Convert => {
+            CQS => sub { my $x = shift; return Symbology::Convention::CQS->convert($x); },
+            CMS => sub { my $x = shift; return Symbology::Convention::CMS->convert($x); },
+            FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->convert($x); }
+        }
+    };
 
     bless ($self, $class);
     return $self;
@@ -22,49 +34,24 @@ sub what {
     my ($self, $symbol) = @_;
     
     my $returnObj;
+
+    $returnObj->{CQS} = $self->{Check}{CQS}->($symbol);
+    $returnObj->{CMS} = $self->{Check}{CMS}->($symbol);
+    $returnObj->{FIDESSA} = $self->{Check}{FIDESSA}->($symbol);
     
-    $returnObj->{CQS} = Symbology::Convention::CQS->check($symbol);
-    delete $returnObj->{CQS} unless defined $returnObj->{CQS};
-
-    $returnObj->{CMS} = Symbology::Convention::CMS->check($symbol);
-    delete $returnObj->{CMS} unless defined $returnObj->{CMS};
-
-    $returnObj->{Fidessa} = Symbology::Convention::Fidessa->check($symbol);
-    delete $returnObj->{Fidessa} unless defined $returnObj->{Fidessa};
-
-    $returnObj->{Integrated} = Symbology::Convention::NASDAQ::Integrated->check($symbol);
-    delete $returnObj->{Integrated} unless defined $returnObj->{Integrated};
 
     return $returnObj;
 }
 
-sub try_convert {
-    my ($self, $symbol, $target) = @_;
+sub convert {
+    my ($self, $symbol, $from, $to) = @_;
 
-    my $data = what($self,$symbol);
-    
-    for (keys %{$data}){
-        next unless defined $data->{$_};
+    my $fromobj = $self->{Check}{uc($from)}->($symbol);
+    my $toobj = $self->{Convert}{uc($to)}->($fromobj);
 
-        if ($target eq 'CMS'){
-            my $conversion = Symbology::Convention::CMS->giveme($data->{$_});
-        }
-
-        if ($target eq 'CQS'){
-            my $conversion = Symbology::Convention::CQS->giveme($data->{$_});
-        }
-
-        if ($target eq 'Fidessa'){
-            my $conversion = Symbology::Convention::Fidessa->giveme($data->{$_});
-        }
-
-        if ($target eq 'Integrated'){
-            my $conversion = Symbology::Convention::NASDAQ::Integrated->giveme($data->{$_});
-        }
-    }
-
-    return 'No conversion found';
-
+    return $toobj;
 }
+
+
 
 1;

@@ -3,324 +3,168 @@ package Symbology::Convention::Fidessa;
 use strict;
 use warnings;
 
-# Enjoying Mastering regular expressions, why not use an example from it?
 my $template = {
-    'Preferred' => '-',
-    'Preferred Class' => '-=CLASS=',
-    'Class' => '.=CLASS=',
-    'Preferred when distributed' => '-WD',
-    'When distributed' => '!W',
-    'Warrants' => '+',
-    'Warrants Class' => '+=CLASS=',
-    'Called' => '!',
-    'Class Called' => '.=CLASS=L',
-    'Preferred Called' => '-CL',
-    'Preferred Class Called' => '-=CLASS=L',
-    'Preferred Class When Issued' => '-=CLASS=*',
-    'Emerging Company Marketplace' => '!EC',
-    'Partial Paid' => '!PP',
-    'Convertible' => '!V',
-    'Convertible Called' => '!VL',
-    'Class Convertible' => '.=CLASS=V',
-    'Preferred Class Convertible' => '-=CLASS=V',
-    'Preferred Class When Distributed' => '-=CLASS=WD',
-    'Rights' => '!R',
-    'Units' => '.U',
-    'When Issued' => '*',
-    'Rights When Issued' => '!R*',
-    'Preferred When Issued' => '-*',
-    'Class When Issued' => '.=CLASS=*',
-    'Warrant When Issued' => '+*',
-    'TEST Symbol' => '/TEST'
+    'Preferred' => {
+        pattern => qr/^([A-Z]+)(-)$/,
+        template => '-',
+    },
+    'Preferred Class' => {
+        pattern => qr/^([A-Z]+)(-([A-Z]))$/,
+        template => '-=CLASS=',
+        class => 3
+    },
+    'Class' => {
+        pattern => qr/^([A-Z]+)(\.([A-Z]))$/,
+        template => '.=CLASS=',
+        class => 3
+    },
+    'Preferred when distributed' => {
+        pattern => qr/^([A-Z]+)(-WD)$/,
+        template => '-WD',
+    },
+    'When distributed' => {
+        pattern => qr/^([A-Z]+)(!W$)/,
+        template => '!W',
+    },
+    'Warrants' => {
+        pattern => qr/^([A-Z]+)(\+)$/,
+        template => '+',
+    },
+    'Warrants Class' => {
+        pattern => qr/^([A-Z]+)(\+([A-Z]))$/,
+        template => '+=CLASS=',
+        class => 3
+    },
+    'Called' => {
+        pattern => qr/^([A-Z]+)(!L)$/,
+        template => '!',
+    },
+    'Class Called' => {
+        pattern => qr/^([A-Z]+)(\.([A-Z])L)$/,
+        template => '.=CLASS=L',
+        class => 3
+    },
+    'Preferred Called' => {
+        pattern => qr/^([A-Z]+)(-CL)$/,
+        template => '-CL',
+    },
+    'Preferred Class Called' => {
+        pattern => qr/^([A-Z]+)(-([A-Z])L)$/,
+        template => '-=CLASS=L',
+        class => 3
+    },
+    'Preferred Class When Issued' => {
+        pattern => qr/^([A-Z]+)(-([A-Z])\*)$/,
+        template => '-=CLASS=*',
+        class => 3
+    },
+    'Emerging Company Marketplace' => {
+        pattern => qr/^([A-Z]+)(!EC)$/,
+        template => '!EC',
+    },
+    'Partial Paid' => {
+        pattern => qr/^([A-Z]+)(!PP)$/,
+        template => '!PP',
+    },
+    'Convertible' => {
+        pattern => qr/^([A-Z]+)(!V)$/,
+        template => '!V',
+    },
+    'Convertible Called' => {
+        pattern => qr/^([A-Z]+)(!VL)$/,
+        template => '!VL',
+    },
+    'Class Convertible' => {
+        pattern => qr/^([A-Z]+)(\.([A-Z])V)$/,
+        template => '.=CLASS=V',
+        class => 3
+    },
+    'Preferred Class Convertible' => {
+        pattern => qr/^([A-Z]+)(-([A-Z])V)$/,
+        template => '-=CLASS=V',
+        class => 3
+    },
+    'Preferred Class When Distributed' => {
+        pattern => qr/^([A-Z]+)(-([A-Z])WD)$/,
+        template => '-=CLASS=WD',
+        class => 3
+    },
+    'Rights' => {
+        pattern => qr/^([A-Z]+)(!R)$/,
+        template => '!R',
+    },
+    'Units' => {
+        pattern => qr/^([A-Z]+)(\.U)$/,
+        template => '.U',
+    },
+    'When Issued' => {
+        pattern => qr/^([A-Z]+)(\*)$/,
+        template => '*',
+    },
+    'Rights When Issued' => {
+        pattern => qr/^([A-Z]+)(!R\*)$/,
+        template => '!R*',
+    },
+    'Preferred When Issued' => {
+        pattern => qr/^([A-Z]+)(-\*)$/,
+        template => '-*',
+    },
+    'Class When Issued' => {
+        pattern => qr/^([A-Z]+)(\.([A-Z])\*)$/,
+        template => '.=CLASS=*',
+        class => 3
+    },
+    'Warrant When Issued' => {
+        pattern => qr/^([A-Z]+)(\+\*)$/,
+        template => '+*',
+    },
+    'TEST Symbol' => {
+        pattern => qr/^([A-Z]+)(\.CT)$/,
+        template => '/TEST' },
+    #Fidessa only symbols
+    'Special' => {
+        pattern => qr/^([A-Z]+)(\.SP)$/
+    },
+    'Stamped' => {
+        pattern => qr/^([A-Z]+)(\.SD)$/
+    },
+    'With Warrants' => {
+        pattern => qr/^([A-Z]+)(:W)$/
+    },
+    'Without Warrants' => {
+        pattern => qr/^([A-Z]+)(:XW)$/
+    }
 };
 
-sub conversion {
-    my ($symbol,$type,$class) = @_;
-
-    $class = $class // '';
-    
-    my $suffix = $template->{$type};
-    die 'Unknown type: ' . $type unless defined $suffix;
-
-    $suffix =~ s/=CLASS=/$class/;
-
-    return $symbol . $suffix;
-
-}
 
 sub check {
     my ($self, $symbol) = @_;
-    
-    return unless defined $symbol;
 
-    if ($symbol =~ m/^([A-Z]+)(-)$/){
-        return {
-            Type => 'Preferred',
-            Prefix => $1,
-            Suffix => $2
+    for my $type (keys %{$template}){
+        if (my @matches = $symbol =~ m/$template->{$type}{pattern}/){
+            my @class = splice(@matches,$template->{$type}{class}-1,1)
+                if defined $template->{$type}{class};
+
+            my $returnObj;
+            $returnObj->{type}   = $type;
+            $returnObj->{symbol} = shift @matches;
+            $returnObj->{class}  = shift @class if defined $class[0];
+            $returnObj->{suffix} = shift @matches if defined $matches[0]; 
+
+            return $returnObj;
         }
     }
-
-    if ($symbol =~ m/^([A-Z]+)(-([A-Z]))$/){
-        return { 
-            Type => "Preferred Class",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.([A-Z]))$/) {
-        return { 
-            Type => "Class",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-WD)$/){
-    return {
-            Type => 'Preferred when distributed',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!W$)/){
-        return {
-            Type => 'When distributed',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\+)$/){
-        return {
-            Type => 'Warrants',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\+([A-Z]))$/){
-        return { 
-            Type => "Warrants Class",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!L)$/){
-        return {
-            Type => 'Called',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-    
-    if ($symbol =~ m/^([A-Z]+)(\.([A-Z])L)$/){
-        return {
-            Type => "Class Called",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-CL)$/){
-        return {
-            Type => 'Preferred Called',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-([A-Z])L)$/){
-        return { 
-            Type => "Preferred Class Called",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-([A-Z])\*)$/){
-        return { 
-            Type => "Preferred When Issued",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!EC)$/){
-        return {
-            Type => 'Emerging Company Marketplace',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!PP)$/){
-        return {
-            Type => 'Partial Paid',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!V)$/){
-        return {
-            Type => 'Convertible',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!VL)$/){
-        return {
-            Type => 'Convertible Called',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.([A-Z])V)$/){
-        return { 
-            Type => "Class Convertible",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-([A-Z])V)$/){
-        return { 
-            Type => "Preferred Class Convertible",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-([A-Z])WD)$/){
-        return { 
-            Type => "Preferred Class When Distributed",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!R)$/){
-        return {
-            Type => 'Rights',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.U)$/){
-        return {
-            Type => 'Units',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\*)$/){
-        return {
-            Type => 'When Issued',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(!R\*)$/){
-        return {
-            Type => 'Rights When Issued',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(-\*)$/){
-        return {
-            Type => 'Preferred When Issued',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.([A-Z])\*)$/){
-        return { 
-            Type => "Class When Issued",
-            Prefix => $1,
-            Suffix => $2,
-            Class => $3
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\+\*)$/){
-        return {
-            Type => 'Warrant When Issued',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.CT)$/){
-        return {
-            Type => 'Certificates',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.SP)$/){
-        return {
-            Type => 'Special',
-            Prefix => $1,
-            Suffix => $2
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(\.SD)$/){
-        return {
-            Type => 'Stamped',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(:W)$/){
-    return {
-            Type => 'With Warrants',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-
-    if ($symbol =~ m/^([A-Z]+)(:XW)$/){
-        return {
-            Type => 'Without Warrants',
-            Prefix => $1,
-            Suffix => $2,
-        }
-    }
-    return undef;
-
 }
 
-sub giveme {
-    my ($self, $data) = @_;
+sub convert {
+    my ($self, $obj) = @_;
 
-    if (exists $data->{Class}){
-        return conversion($data->{Prefix},$data->{Type},$data->{Class});
-    } else {
-        return conversion($data->{Prefix},$data->{Type});
-    }
+    my $outline = $template->{$obj->{type}}{template};
+
+    $outline =~ s/=CLASS=/$obj->{class}/
+        if defined $obj->{class};
+
+    return $obj->{symbol}.$outline;
 }
+
 1;

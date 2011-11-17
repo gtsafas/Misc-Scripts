@@ -3,7 +3,6 @@ package Symbology::Convention::NASDAQ::Integrated;
 use strict;
 use warnings;
 
-# Enjoying Mastering regular expressions, why not use an example from it?
 my $template = {
     'Preferred' => '-',
     'Preferred Class' => '-=CLASS=',
@@ -34,25 +33,6 @@ my $template = {
     'TEST Symbol' => '~'
 };
 
-sub conversion {
-    my ($symbol,$type,$class) = @_;
-
-    $class = $class // '';
-    
-    my $suffix = $template->{$type};
-    die 'Unknown type: ' . $type unless defined $suffix;
-
-    $suffix =~ s/=CLASS=/$class/;
-
-    return $symbol . $suffix;
-
-}
-
-
-sub check {
-    my ($self, $symbol) = @_;
-
-    return unless defined $symbol;
 
     if ($symbol =~ m/^([A-Z]+)(-)$/){
         return {
