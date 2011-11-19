@@ -5,7 +5,7 @@ use warnings;
 
 use Convention::CQS;
 use Convention::CMS;
-use Convention::Fidessa;
+#use Convention::Fidessa; Need confirmation on convention
 use Convention::NASDAQ::Integrated;
 
 BEGIN {
@@ -22,13 +22,13 @@ sub new {
         Check => {
             CQS     => sub { my $x = shift; return Symbology::Convention::CQS->check($x); },
             CMS     => sub { my $x = shift; return Symbology::Convention::CMS->check($x); },
-            FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->check($x); },
+            #FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->check($x); },
             NASINTEGRATED => sub { my $x = shift; return Symbology::Convention::NASDAQ::Integrated->check($x); }
         }, 
         Convert => {
             CQS => sub { my $x = shift; return Symbology::Convention::CQS->convert($x); },
             CMS => sub { my $x = shift; return Symbology::Convention::CMS->convert($x); },
-            FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->convert($x); },
+            #FIDESSA => sub { my $x = shift; return Symbology::Convention::Fidessa->convert($x); },
             NASINTEGRATED => sub { my $x = shift; return Symbology::Convention::NASDAQ::Integrated->convert($x); }
         }
     };
@@ -48,8 +48,8 @@ sub what {
     $returnObj->{CMS} = $self->{Check}{CMS}->($symbol);
     delete $returnObj->{CMS} unless defined $returnObj->{CMS};
 
-    $returnObj->{FIDESSA} = $self->{Check}{FIDESSA}->($symbol);
-    delete $returnObj->{FIDESSA} unless defined $returnObj->{FIDESSA};
+    #$returnObj->{FIDESSA} = $self->{Check}{FIDESSA}->($symbol);
+    #delete $returnObj->{FIDESSA} unless defined $returnObj->{FIDESSA};
     
     $returnObj->{NASINTEGRATED} = $self->{Check}{NASINTEGRATED}->($symbol);
     delete $returnObj->{NASINTEGRATED} unless defined $returnObj->{NASINTEGRATED};
@@ -60,6 +60,7 @@ sub what {
 sub convert {
     my ($self, $symbols, $from, $to) = @_;
 
+
     if (ref $symbols eq 'ARRAY') {
         my @convertedsymbols; 
         for my $symbol (@{$symbols}){
@@ -68,7 +69,7 @@ sub convert {
             my $toobj = $self->{Convert}{uc($to)}->($fromobj);
             push @convertedsymbols, $toobj;
         }
-        return \@convertedsymbols;
+        return @convertedsymbols;
     } else {
         my $fromobj = $self->{Check}{uc($from)}->($symbols);
         return "Invalid format for $from \($symbols\)" unless defined $fromobj;
@@ -98,7 +99,9 @@ Symbology::Converter - Common US Stock market syntax swapper / tester
     my $symbols = [ 'AAPL WI', 'C PR', 'TEST A' ];
     my $symbol = 'TEST A';
 
-    # Valid convention options Fidessa, CMS, CQS, NASIntegrated
+    # Valid convention options CMS, CQS, NASIntegrated
+
+    # Fidessa convention sheet is included but not implemented as the spec given had a bug
 
     my $converted_symbols =  $converter->convert($symbols, 'CMS', 'CQS' );
     my $converted_symbol  = $converter->convert($symbol, 'CMS', 'CQS' );
