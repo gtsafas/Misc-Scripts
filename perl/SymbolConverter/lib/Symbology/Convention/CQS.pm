@@ -141,12 +141,15 @@ sub check {
             return $returnObj;
         }
     }
+    return undef;
 }
 
 sub convert {
     my ($self, $obj) = @_;
 
     my $outline = $template->{$obj->{type}}{template};
+
+    return -1 unless defined $outline;
 
     $outline =~ s/=CLASS=/$obj->{class}/
         if defined $obj->{class};
